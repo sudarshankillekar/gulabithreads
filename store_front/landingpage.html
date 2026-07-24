@@ -1,0 +1,452 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Gulabi Threads | The Art of the Everyday Carry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Montserrat:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#ffd9dd",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#7a3c46",
+                    "tertiary-fixed-dim": "#c8c7bf",
+                    "on-tertiary-fixed": "#1b1c17",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#f6f3f2",
+                    "secondary-container": "#feaab6",
+                    "tertiary-container": "#d0cec7",
+                    "on-error": "#ffffff",
+                    "secondary-fixed-dim": "#ffb2bc",
+                    "on-surface-variant": "#504444",
+                    "surface-container": "#f0eded",
+                    "outline-variant": "#d4c2c2",
+                    "inverse-primary": "#ecbaba",
+                    "on-tertiary-container": "#585852",
+                    "on-primary": "#ffffff",
+                    "on-background": "#1b1c1c",
+                    "on-primary-container": "#734e4e",
+                    "secondary": "#8c4b55",
+                    "inverse-on-surface": "#f3f0f0",
+                    "primary-fixed": "#ffdad9",
+                    "tertiary-fixed": "#e4e3db",
+                    "primary-fixed-dim": "#ecbaba",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#2f1314",
+                    "outline": "#827473",
+                    "surface": "#fcf9f8",
+                    "inverse-surface": "#303030",
+                    "surface-bright": "#fcf9f8",
+                    "on-primary-fixed-variant": "#613d3e",
+                    "background": "#fcf9f8",
+                    "on-secondary-fixed": "#3a0915",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#70343e",
+                    "surface-container-high": "#eae7e7",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#7b5455",
+                    "primary-container": "#f4c2c2",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "surface-dim": "#dcd9d9",
+                    "primary": "#7b5455",
+                    "surface-container-highest": "#e4e2e1",
+                    "surface-variant": "#e4e2e1",
+                    "tertiary": "#5f5f59",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#1b1c1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "container-max": "1440px",
+                    "margin-desktop": "64px",
+                    "gutter": "24px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "display-lg-mobile": ["Playfair Display"],
+                    "body-lg": ["Montserrat"],
+                    "headline-md": ["Playfair Display"],
+                    "headline-sm": ["Playfair Display"],
+                    "label-caps": ["Montserrat"],
+                    "button": ["Montserrat"],
+                    "display-lg": ["Playfair Display"],
+                    "body-md": ["Montserrat"]
+            },
+            "fontSize": {
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "600"}],
+                    "button": ["14px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .nav-link-active {
+            border-bottom: 1px solid #7b5455;
+            padding-bottom: 4px;
+        }
+        .luxury-shadow {
+            box-shadow: 0px 12px 32px rgba(45, 45, 45, 0.05);
+        }
+        .product-card-img:hover img {
+            transform: scale(1.05);
+        }
+        .line-input {
+            border-bottom: 1px solid rgba(27, 28, 28, 0.2);
+            transition: border-color 0.3s ease;
+        }
+        .line-input:focus {
+            outline: none;
+            border-bottom-color: #7b5455;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm transition-all duration-300 ease-in-out py-4">
+<div class="flex justify-between items-center w-full px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<a class="font-display-lg text-headline-sm text-primary italic" href="#">Gulabi Threads</a>
+<div class="hidden md:flex items-center gap-6">
+<a class="font-body-md text-body-md uppercase tracking-widest text-primary font-bold border-b border-primary pb-1" href="#">Everyday</a>
+<a class="font-body-md text-body-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Office</a>
+<a class="font-body-md text-body-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Travel</a>
+<a class="font-body-md text-body-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Premium</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center border-b border-outline-variant/30 pb-1">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-48 placeholder:text-on-surface-variant/50" placeholder="Search Collection" type="text">
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:opacity-70 transition-opacity duration-300"><span class="material-symbols-outlined text-primary">favorite</span></button>
+<button class="hover:opacity-70 transition-opacity duration-300"><span class="material-symbols-outlined text-primary">shopping_bag</span></button>
+<button class="hover:opacity-70 transition-opacity duration-300"><span class="material-symbols-outlined text-primary">person</span></button>
+</div>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative min-h-screen flex items-center pt-20 overflow-hidden bg-surface">
+<div class="absolute inset-0 w-full h-full z-0">
+<div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/40 to-transparent z-10"></div>
+<img class="w-full h-full object-cover object-center" data-alt="A high-end editorial fashion photograph of a premium leather tote bag in a soft blush pink hue, resting against a minimalist ivory architectural backdrop. The lighting is soft and golden, evocative of a late afternoon sun casting long, gentle shadows. The composition is clean and spacious, capturing the exquisite grain of the leather and the subtle rose gold hardware. The atmosphere is one of quiet luxury and modern sophistication." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQIUKknV6tmHR0su49XHjnkelG8UmoWKmsxrptAMNBiwR6nQUWUKKHCEZuoGmGS_nzK9wIJHzsR9IiH71-drTSxXTNJIKAd1pt-Z73X25zb722ara4ozSKVud3KFltBxcA_s7Y582fsUmsPjMaduE5Wy6BwIfBuYMm2mL8E30ByNg1VtHP_K5aLXk7G29gfagSy6tH0ie-mwcpZUxT6rA8MEh8VC3hrI-IKf7OHn66n6BooZtqFtIwAgb8LExum7bLsplk2HNGTAo">
+</div>
+<div class="relative z-20 px-margin-desktop max-w-container-max mx-auto w-full">
+<div class="max-w-2xl">
+<span class="font-label-caps text-label-caps text-primary tracking-[0.3em] uppercase block mb-6">New Collection Out Now</span>
+<h1 class="font-display-lg text-display-lg text-on-background mb-8 leading-tight">The Art of the <br><span class="italic font-normal">Everyday Carry</span></h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-12 max-w-lg">Elevate your daily ritual with meticulously crafted accessories that balance functional necessity with high-fashion aesthetic.</p>
+<div class="flex flex-wrap gap-6">
+<button class="px-10 py-5 bg-on-background text-on-primary font-button text-button uppercase tracking-widest hover:bg-primary transition-colors duration-300">Shop Now</button>
+<button class="px-10 py-5 border border-on-background text-on-background font-button text-button uppercase tracking-widest hover:bg-secondary-fixed transition-colors duration-300">Explore Collection</button>
+</div>
+</div>
+</div>
+</header>
+<!-- New Arrivals Grid -->
+<section class="py-section-gap px-margin-desktop max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div>
+<span class="font-label-caps text-label-caps text-primary mb-4 block">Curated Selection</span>
+<h2 class="font-headline-md text-headline-md">New Arrivals</h2>
+</div>
+<a class="font-button text-button uppercase border-b border-on-background pb-1 hover:text-primary hover:border-primary transition-all" href="#">View All Products</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Product Card 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] mb-6 overflow-hidden bg-surface-container-low relative">
+<span class="absolute top-4 left-4 font-label-caps text-[10px] border border-on-background px-2 py-1 z-10 bg-surface/80">NEW IN</span>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close-up of a minimalist leather crossbody bag in a deep charcoal grey, featuring elegant rose gold zippers and a slim adjustable strap. The bag is presented in a clean, high-fashion studio setting with neutral tones and soft ambient lighting that highlights the texture of the premium calfskin leather." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmdwW3DnzEJzAwW5L9cs_0DCYPF0J79BxKEEfU1aXP2tCYe6_pYaF9CttSkhVqErgJqy0JpW-zre77QuJXjt4cfoiCxFRJeRDG82lUK9RchoY2p6fZgHaYIJsZLxR8jX9UDX30005HKnYEFzZRcqkrSgRswJOH6QVnP45kF8K_I5mKYdulOqfnwjyNuSXgPaMTaLRtDiIPvvRtE-9kwKHRqX-b2iKFo6N5nzZ4tznC0zP5YpXFZ-NhsGIXJCE7AaUregAm9qYYGwI">
+</div>
+<div class="text-center">
+<h3 class="font-body-md text-body-md text-on-background mb-1 group-hover:text-primary transition-colors">The Signature Crossbody</h3>
+<p class="font-label-caps text-on-surface-variant">$245.00</p>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] mb-6 overflow-hidden bg-surface-container-low relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A sophisticated leather laptop sleeve in a warm ivory tone with delicate blush pink stitching. The design is sleek and professional, showcased on a marble surface next to a stack of architectural magazines. Soft window light creates a high-key, airy feeling emphasizing the product's premium finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQIUKknV6tmHR0su49XHjnkelG8UmoWKmsxrptAMNBiwR6nQUWUKKHCEZuoGmGS_nzK9wIJHzsR9IiH71-drTSxXTNJIKAd1pt-Z73X25zb722ara4ozSKVud3KFltBxcA_s7Y582fsUmsPjMaduE5Wy6BwIfBuYMm2mL8E30ByNg1VtHP_K5aLXk7G29gfagSy6tH0ie-mwcpZUxT6rA8MEh8VC3hrI-IKf7OHn66n6BooZtqFtIwAgb8LExum7bLsplk2HNGTAo">
+</div>
+<div class="text-center">
+<h3 class="font-body-md text-body-md text-on-background mb-1 group-hover:text-primary transition-colors">Executive Laptop Sleeve</h3>
+<p class="font-label-caps text-on-surface-variant">$120.00</p>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] mb-6 overflow-hidden bg-surface-container-low relative">
+<span class="absolute top-4 left-4 font-label-caps text-[10px] border border-primary text-primary px-2 py-1 z-10 bg-surface/80">LIMITED</span>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Detail shot of a handheld clutch bag featuring an intricate laser-cut pattern in a dusty rose gold metallic leather. The bag is caught in a dramatic spotlight that creates shimmering reflections and deep artistic shadows. The overall aesthetic is one of exclusive evening glamour and meticulous craftsmanship." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmdwW3DnzEJzAwW5L9cs_0DCYPF0J79BxKEEfU1aXP2tCYe6_pYaF9CttSkhVqErgJqy0JpW-zre77QuJXjt4cfoiCxFRJeRDG82lUK9RchoY2p6fZgHaYIJsZLxR8jX9UDX30005HKnYEFzZRcqkrSgRswJOH6QVnP45kF8K_I5mKYdulOqfnwjyNuSXgPaMTaLRtDiIPvvRtE-9kwKHRqX-b2iKFo6N5nzZ4tznC0zP5YpXFZ-NhsGIXJCE7AaUregAm9qYYGwI">
+</div>
+<div class="text-center">
+<h3 class="font-body-md text-body-md text-on-background mb-1 group-hover:text-primary transition-colors">Rose Gold Gala Clutch</h3>
+<p class="font-label-caps text-on-surface-variant">$380.00</p>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] mb-6 overflow-hidden bg-surface-container-low relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A versatile carry-all tote bag in a rich espresso leather, shown being held by a model wearing an oversized beige wool coat. The setting is a modern urban street with clean lines and a soft blur in the background. The bag looks spacious and durable yet maintains a high-fashion silhouette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfl4qj5NBwykoeEaN42FcK5FyOYqdNUS-bDxPgAotbEfQs7E21Tjt-b0IoSRU56q6THkG-eHoyc1zCErm6rght9f86yGVSvCpO0yY-qHrNe5VhtXXoBBu4zyvlrLhyT_F6g4LgwQXdO-vfLtfSxQfsQN3SBGtW5sUIezaeGvuD15LQki7Da8tBDDzAXTuINZfU1X_EqYsv4V0P_KeYR9d8of1NLC98sez8iKnHIDJYzSAbGEmTub5ZGfXJ2K_cH4maRyyH9oYH7uo">
+</div>
+<div class="text-center">
+<h3 class="font-body-md text-body-md text-on-background mb-1 group-hover:text-primary transition-colors">The Weekender Tote</h3>
+<p class="font-label-caps text-on-surface-variant">$450.00</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Categories: Asymmetric Bento Grid -->
+<section class="py-section-gap bg-surface-container-low">
+<div class="px-margin-desktop max-w-container-max mx-auto">
+<h2 class="font-headline-md text-headline-md text-center mb-16">Browse by Lifestyle</h2>
+<div class="grid grid-cols-1 md:grid-cols-12 grid-rows-2 gap-gutter h-[800px]">
+<!-- Everyday -->
+<div class="md:col-span-8 md:row-span-1 relative overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" data-alt="A lifestyle scene featuring a casual leather backpack and a coffee cup on a rustic wooden table in a sunlit morning cafe. The image uses warm, earthy tones and a shallow depth of field to evoke a sense of comfortable, stylish daily routine. The lighting is soft and welcoming, perfect for an 'Everyday' category." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqSZIG1je0uIk5jxNP5FsyWvwsSHRj4FlT0LWeNmW8pc8DpHQ4StkSaXvqMeOo5CKhDJWov2mzYGZUPo2-AlDTA-RjSy_-VFrTfWQD_2hoRw8t-ls0iRENwwOAjXxtKJweslPfFArnlCb3pYEdvzOl5MLGc1OE_IbTYQah__WCaLyUd3Rrz13MFDzHoczNOCzwi2nWc7EItFhYWhM4jDrjjNVRBpUQX-mTpe-Y-9j5lQc9df2X9dg1CTO3AJRwyPpVb0ecAIZbk3U">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
+<div class="absolute bottom-8 left-8 text-white">
+<h3 class="font-headline-sm text-headline-sm mb-2">Everyday</h3>
+<span class="font-label-caps tracking-widest text-[10px] border-b border-white pb-1">Shop Essentials</span>
+</div>
+</div>
+<!-- Office -->
+<div class="md:col-span-4 md:row-span-2 relative overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" data-alt="A minimalist office desk setup with a sleek leather briefcase and professional stationery in tones of charcoal and ivory. The setting is a bright, modern corporate environment with floor-to-ceiling windows. The image conveys a sense of ambition, clarity, and organized luxury, representing the 'Office' collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoe0ZulLlpfPCK220h5Pkebx262mUjQgoS0NedLozwaYgGqghz-12G3MXxWegFkpJxbEgHpST9MqiQ5OMJCRZj1P2HEQzYwnZZTLlLy4SEQdMDvV2ByCCgoB4ulf2U0B-wyjeGqvfyRTeH_D_p4o6zmp0cGJATzD5A7eBB67nqJhNItAxWccPEfCSjBQHN6OC6MPXQ6JfCBB9R9T0-VZslBrv0i2gB9kn8TdCdTzoHfE2BCaZpQWgCKRh67_LEOWm3-uI2k7xQl3Y">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
+<div class="absolute bottom-8 left-8 text-white">
+<h3 class="font-headline-sm text-headline-sm mb-2">Office</h3>
+<span class="font-label-caps tracking-widest text-[10px] border-b border-white pb-1">Shop Professional</span>
+</div>
+</div>
+<!-- Travel -->
+<div class="md:col-span-4 md:row-span-1 relative overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" data-alt="An atmospheric image of a travel duffel bag next to a vintage camera on a luxurious hotel bed. The color palette is rich with deep browns and creamy whites, lit by the warm glow of a bedside lamp. The mood is adventurous yet refined, perfectly capturing the essence of the 'Travel' category." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnSbTNx5jEvIZJwTBnUljJcI9WGc67lRZfViBX456SCmrT9Ibiz4cMsA5bN8PuzQueFzCJN_2HjnkyOrMbS9pRj-DeJ-8DaOOLmo0bWGO7DrXL_OSixFYLbMY-XTP-wEAc0wHhMWQCHf54qt19FpHHpsaEoO3Gs_uviE5MqzHNaDgujy7pBQzj1bW41NImLdy3hXW6FrB3HXboQu0U3DS5s29Dna-9RBmZMM5LaU7-0BhAE2t53o4ZkKWqxROoOhIu5_mbOraeivo">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
+<div class="absolute bottom-8 left-8 text-white">
+<h3 class="font-headline-sm text-headline-sm mb-2">Travel</h3>
+<span class="font-label-caps tracking-widest text-[10px] border-b border-white pb-1">Shop Wanderlust</span>
+</div>
+</div>
+<!-- Premium -->
+<div class="md:col-span-4 md:row-span-1 relative overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" data-alt="An extreme close-up of exotic leather texture with high-polish rose gold hardware. The lighting is dramatic and artistic, focusing on the quality of materials and the precision of the stitching. This image represents the 'Premium' line, evoking exclusivity, craftsmanship, and ultra-high-end fashion." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7J2qHxpyHE8TolM-hkCY0ry7amzmTV2B9uZn9E1EMG56bAY6AbA2rqU8MR5KkJYa6CGmJf9FF2SjaaWbDIUVqB51If2rRtimdRnDUBJwr4dVfvfHk27N17_mIVO52MtABsjPKuoHfJBtcdpno1Wd_4KqDSGLK6srtGaPBUffk47MtQ7Eqgj6q4rWzsuZ5xnxEyBK7aaC1jZYMoAitwKcHanKM6eCy2io9pwi-WI85hXgqJmMuGqR77MKNxW8oUoPoGkykFq2Babw">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
+<div class="absolute bottom-8 left-8 text-white">
+<h3 class="font-headline-sm text-headline-sm mb-2">Premium</h3>
+<span class="font-label-caps tracking-widest text-[10px] border-b border-white pb-1">Explore Luxury</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Best Sellers & Limited Edition Showcase -->
+<section class="py-section-gap px-margin-desktop max-w-container-max mx-auto overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+<div class="relative">
+<div class="aspect-square bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="A portrait shot of a model elegantly carrying a limited edition Gulabi Threads bucket bag in a unique sunset gradient leather. The model is standing in a minimalist white-walled gallery. The lighting is crisp and modern, highlighting the bag as a piece of wearable art. The color palette consists of soft peaches, pinks, and warm whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8bZKRfBx1ObDjuB0DaYPiFzceT4sxAHrd7_M0xDEWiCueWihPE-wwNZEpM6jMNMrVedZP3RXWuFY8WcL9S0lneqe1omLxEkPgXkb22BU5jNuzcgDUi8MihqH2MU7KTMCBydryVF_4tcqGe80akgb_B_zFWtzrQPC0lXKe8iefOh43m3f05W99DeP2PWGvzIAnXhLlEQUVo_HxQsGGw1ItGqC0nxWxiWdOlBV2wtI2zAMSRgOp229WaiKoftPkmfujwuAUjJ5aaGw">
+<div class="absolute -bottom-12 -right-12 w-64 h-64 border border-primary/20 hidden md:block"></div>
+</div>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary tracking-widest mb-4 block">Limited Edition</span>
+<h2 class="font-display-lg text-headline-md mb-8">The Aurora Bucket Bag</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10">Inspired by the ethereal colors of a summer twilight, the Aurora is a masterclass in leather dyeing and structural design. Each piece is individually numbered and finished with our signature 18k rose gold-plated hardware.</p>
+<div class="space-y-6 mb-12">
+<div class="flex items-center gap-4">
+<span class="w-12 h-[1px] bg-primary"></span>
+<p class="font-label-caps text-on-surface text-sm uppercase">Sustainably Sourced Italian Leather</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-12 h-[1px] bg-primary"></span>
+<p class="font-label-caps text-on-surface text-sm uppercase">Hand-Painted Edge Detailing</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-12 h-[1px] bg-primary"></span>
+<p class="font-label-caps text-on-surface text-sm uppercase">Limited Run of 500 Pieces</p>
+</div>
+</div>
+<button class="group flex items-center gap-4 font-button text-button uppercase tracking-[0.2em] hover:text-primary transition-all">
+                    Secure Yours Now 
+                    <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Why Choose Us -->
+<section class="py-section-gap bg-on-background text-on-primary">
+<div class="px-margin-desktop max-w-container-max mx-auto text-center">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-20">
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 rounded-full border border-primary/30 flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-4xl text-primary">diamond</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Unrivaled Quality</h3>
+<p class="text-on-surface-variant/80 font-body-md max-w-xs">Every stitch is a testament to our commitment to artisanal excellence and longevity.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 rounded-full border border-primary/30 flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-4xl text-primary">eco</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Ethical Sourcing</h3>
+<p class="text-on-surface-variant/80 font-body-md max-w-xs">We partner with family-owned tanneries that prioritize environmental and social responsibility.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 rounded-full border border-primary/30 flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-4xl text-primary">draw</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-4">Timeless Design</h3>
+<p class="text-on-surface-variant/80 font-body-md max-w-xs">Our aesthetic transcends trends, focusing on silhouettes that remain relevant for a lifetime.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials & Instagram -->
+<section class="py-section-gap px-margin-desktop max-w-container-max mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+<div class="lg:col-span-4">
+<span class="font-label-caps text-label-caps text-primary mb-6 block">The Community</span>
+<h2 class="font-display-lg text-headline-md mb-10 italic">"The perfect blend of form and function I've been searching for."</h2>
+<div class="mb-12">
+<p class="font-body-md text-on-background font-bold">- Sarah J., Fashion Director</p>
+<div class="flex gap-1 mt-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="w-12 h-12 border border-outline-variant rounded-full flex items-center justify-center hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="w-12 h-12 border border-outline-variant rounded-full flex items-center justify-center hover:bg-surface-container transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+<div class="lg:col-span-8">
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<img class="w-full aspect-square object-cover" data-alt="A stylish Instagram-style flat lay of a Gulabi Threads bag surrounded by a vintage book, a pair of gold earrings, and a sprig of dried lavender. The aesthetic is warm, feminine, and intimate, featuring ivory and blush pink tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByTw0IFr6mVILtpQj62ZOcPTC9ECcXfVx8myLrjgzLuC8t-tLHcHJ7X6P0V1yGXyqsCU0cQy8un2fVkgPjGFFEXCtkmkgHhse-tPhKI936B6G_CWXqjM_dlH85xeahejEVMK2CVRVhtZeFtx_bAGqEgIjPum9c5UbpuRZ4qv2wmFg_HsOJgAsoxeqKpCcDNpKRbdMAbaPGWGMiXdiYNFnjYyg0aH2Y-pXxkRfW4Fe6HXNeRa0rdQZzN7s4dY4yHgZx_0RhJKI6iUw">
+<img class="w-full aspect-square object-cover" data-alt="A candid photo of a woman in an elegant camel-colored coat walking down a Parisian street, with a Gulabi Threads tote bag over her shoulder. The soft morning light and historic architecture create a romantic, aspirational fashion moment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYiiZUfspqc98O5oaafd4Jl510wQ3dWD0IzU4HBgaSVp8vOeAuVnQu_3bzo6PasounboiQ2PVyBJ0KyAvPNkqn25HGzSf110--h0Jo-2FQhn_siNBDc9JcGap2WHtny_PdXRHYwwcFNzQyCn1FEtdyvPw7U5YXOuxVgwZb8bq8LP1fdgxUYWLaF_AQgdE-TwpA4Z3rfngFkz38ngKk3QqLrD6A4pYE6CchaadJ6qiNAnfmVDHPHkTpJahIj98qVVfnfh-X3Rh05QI">
+<img class="w-full aspect-square object-cover" data-alt="A high-contrast detail shot of a hand clutching a textured leather wallet with rose gold accents. The focus is on the tactile quality of the leather and the shine of the metal, presented in a minimalist editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsNqiDaWkqK5LlG7BHDykCFN630iV7xxbQmu4GR5_jRM0iRj_BwFwPIaAdnT9sXDrDZeteVvpFw_v_7Q1Uts5u0pwbgTGcUKQ62xOjGjLZnETSSQF1mLW5uNEruBdIYUufIvCpUuHyzv5nNN5LGib4L91fZlEhQxe_FtlNY5VP6Pg1nJ3TSQsdD5j-ckaPBY-czasksQ4hzQVCQrnLtIbXM7xuG4GcS7J6d1UDxLsu2JHnUe6c4J8gIvcKRHxbWYPKqFsUMKyouVM">
+<img class="w-full aspect-square object-cover" data-alt="A lifestyle shot of two friends sitting at an outdoor terrace cafe, both with their Gulabi Threads accessories prominently displayed on the table. The mood is joyful and sophisticated, celebrating modern friendship and shared style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkPWg2iR-VGRXhgCRFfRYJwMIlay-h70Rl8RsFmdSTQyzApEnESGIurxlk2-q41LcLZ9jcmkj3NukSMd8X8RHr82cgGEp8rMV_G0XRt4nkS3MJ8o25v6FG2-uuHfQ4jRm_x4XgBYhdrpTGgnJIeg952RRj2vomj8_9558bbdcXgQu6KqSJlJsFCZbRRix8Hem013BP488LoJLOv9AKXGFIGFmSOq0fSv0GDUsDtRyWZoE5Gy3XJh5scD8L3eKxFQ7BSiTvuZNsuQs">
+<img class="w-full aspect-square object-cover" data-alt="A close-up of a designer's desk showing leather samples in various shades of pink and beige, alongside a Gulabi Threads sketchbook and a fountain pen. This behind-the-scenes shot emphasizes the creative process and artisanal roots." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnBkTU4s88YwPg1ciScItD5iRYt1zi2x_byCcFZSr73rDYqJme7wzMd2g1aS9LCqEMVSgkIxaf3rsZhzCy2OBIVZnHsW-rFQI0tsezoEGM5-0XHy4VoKeQak3C-Sd2TeSUH0dR2_yiXhGQ9kuVNvOzrt78XqfcmGH7a8m6GROGzVC4leWUV44goGWvlO6uq_ybTisu4vGBYKm-d29VYZ_ZUxbp0fO-YEcryc-NgS3LrxiWdYbphvYdsVKNIT0Kw-vE6IXv-k2EqtM">
+<img class="w-full aspect-square object-cover" data-alt="A clean product shot of three different sized Gulabi Threads bags arranged symmetrically on tiered ivory pedestals. The minimalist composition and high-key lighting create a sense of gallery-like perfection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUfKeqeWEHwiCcUXV7Uw3FObA9cn8YUbmeEzmJBMJ8h9u8sUuLmni_StIbPPOqX_52M0OxK9vbnxRMARFIHNRvdEs4EhtXYaIPo7CJnw10G1oypRan3sIb2zhhiA00Qfl17mEyYOnZcftqM3XKvFyzpSRfb3sPxp-pBqydd8xEu0EtPlc-65GbnbAFGM4xfxesJmUGEZpHumB2KdBu3LYeN35VpqzB_tN3PPbjw1hEPaZXoSqFtWR73P1mawuaYg2ck-8UIStJ1js">
+</div>
+<div class="mt-8 text-center lg:text-right">
+<a class="font-label-caps text-primary tracking-widest hover:underline transition-all" href="#">Follow @GulabiThreads</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter -->
+<section class="py-section-gap bg-primary-fixed-dim/20">
+<div class="px-margin-desktop max-w-container-max mx-auto text-center max-w-3xl">
+<h2 class="font-headline-md text-headline-md mb-6">Join the Inner Circle</h2>
+<p class="font-body-lg text-on-surface-variant mb-12">Be the first to experience new collections, limited drops, and exclusive events. No clutter, only beauty.</p>
+<form class="flex flex-col md:flex-row gap-6 items-end">
+<div class="flex-1 w-full text-left">
+<label class="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2 block">Email Address</label>
+<input class="w-full bg-transparent border-b border-on-background/20 focus:border-primary focus:ring-0 py-3 transition-colors placeholder:text-on-surface-variant/30" placeholder="your@email.com" type="email">
+</div>
+<button class="w-full md:w-auto px-12 py-4 bg-on-background text-on-primary font-button text-button uppercase tracking-widest hover:bg-primary transition-all" type="submit">Subscribe</button>
+</form>
+<p class="mt-6 font-label-caps text-[10px] text-on-surface-variant/60">By subscribing, you agree to our Privacy Policy and Terms of Service.</p>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface-container-highest dark:bg-surface-container-low w-full pt-section-gap pb-12">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="col-span-1 md:col-span-1">
+<a class="font-display-lg text-headline-md text-primary mb-6 block italic" href="#">Gulabi Threads</a>
+<p class="font-body-md text-on-surface-variant mb-8">Crafting accessories for the modern woman who values intention and elegance in every detail.</p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">share</span></a>
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">language</span></a>
+<a class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-xl">camera</span></a>
+</div>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-on-surface mb-8 uppercase tracking-widest">Collections</h4>
+<ul class="space-y-4">
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Everyday Carry</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Office Professional</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Travel Luxe</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Limited Editions</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-on-surface mb-8 uppercase tracking-widest">Customer Care</h4>
+<ul class="space-y-4">
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Sustainability</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Track Order</a></li>
+<li class=""><a class="font-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Us</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-on-surface mb-8 uppercase tracking-widest">Contact</h4>
+<p class="font-body-md text-on-surface-variant mb-4">hello@gulabithreads.com</p>
+<p class="font-body-md text-on-surface-variant mb-4">+1 (555) 234-5678</p>
+<p class="font-body-md text-on-surface-variant">Flagship Store:<br>123 Madison Ave, New York, NY</p>
+</div>
+</div>
+<div class="mt-20 pt-8 border-t border-outline-variant/20 px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 Gulabi Threads. All rights reserved.</p>
+<div class="flex gap-8">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple scroll interaction for Navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2', 'bg-surface/95');
+                nav.classList.remove('py-4', 'bg-surface/80');
+            } else {
+                nav.classList.add('py-4', 'bg-surface/80');
+                nav.classList.remove('py-2', 'bg-surface/95');
+            }
+        });
+
+        // Hover effect for product cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                const img = card.querySelector('img');
+                if(img) img.style.transform = 'scale(1.05)';
+            });
+            card.addEventListener('mouseleave', () => {
+                const img = card.querySelector('img');
+                if(img) img.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+
+
+</body></html>

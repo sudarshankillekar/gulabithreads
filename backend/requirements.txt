@@ -1,0 +1,9 @@
+fastapi>=0.124,<1
+uvicorn[standard]>=0.38,<1
+motor>=3.7,<4
+pydantic>=2.12,<3
+python-dotenv>=1.2,<2
+razorpay>=2.0,<3
+httpx>=0.28,<1
+python-multipart>=0.0.20,<1
+certifi>=2025.11.12

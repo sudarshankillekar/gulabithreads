@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout | Gulabi Threads</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#f0eded",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#1b1c1c",
+                    "primary-fixed": "#ffdad9",
+                    "on-tertiary-container": "#585852",
+                    "surface-variant": "#e4e2e1",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "tertiary-container": "#d0cec7",
+                    "outline": "#827473",
+                    "background": "#fcf9f8",
+                    "surface-tint": "#7b5455",
+                    "surface-container-high": "#eae7e7",
+                    "secondary-fixed": "#ffd9dd",
+                    "tertiary": "#5f5f59",
+                    "on-surface-variant": "#504444",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb2bc",
+                    "on-primary-fixed": "#2f1314",
+                    "tertiary-fixed-dim": "#c8c7bf",
+                    "on-background": "#1b1c1c",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary": "#8c4b55",
+                    "secondary-container": "#feaab6",
+                    "primary-fixed-dim": "#ecbaba",
+                    "tertiary-fixed": "#e4e3db",
+                    "surface-container-highest": "#e4e2e1",
+                    "on-primary-fixed-variant": "#613d3e",
+                    "on-secondary-fixed": "#3a0915",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "inverse-on-surface": "#f3f0f0",
+                    "primary-container": "#f4c2c2",
+                    "on-tertiary-fixed": "#1b1c17",
+                    "on-secondary-fixed-variant": "#70343e",
+                    "surface": "#fcf9f8",
+                    "primary": "#7b5455",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#d4c2c2",
+                    "on-secondary-container": "#7a3c46",
+                    "on-primary-container": "#734e4e",
+                    "inverse-primary": "#ecbaba",
+                    "surface-bright": "#fcf9f8",
+                    "surface-container-low": "#f6f3f2",
+                    "inverse-surface": "#303030",
+                    "surface-dim": "#dcd9d9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap": "120px",
+                    "margin-mobile": "20px",
+                    "container-max": "1440px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-desktop": "64px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Montserrat"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "display-lg": ["Playfair Display"],
+                    "button": ["Montserrat"],
+                    "body-md": ["Montserrat"],
+                    "label-caps": ["Montserrat"],
+                    "headline-sm": ["Playfair Display"],
+                    "headline-md": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "button": ["14px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "600"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .form-input-line {
+            border: none;
+            border-bottom: 1px solid rgba(130, 116, 115, 0.2);
+            background: transparent;
+            padding: 12px 0;
+            width: 100%;
+            transition: border-color 0.3s ease;
+        }
+        .form-input-line:focus {
+            outline: none;
+            border-bottom-color: #7b5455;
+            box-shadow: none;
+        }
+        .form-label {
+            transition: all 0.3s ease;
+            color: #504444;
+        }
+        .form-input-line:focus + .form-label,
+        .form-input-line:not(:placeholder-shown) + .form-label {
+            color: #8c4b55;
+            font-size: 10px;
+            transform: translateY(-20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20">
+<div class="flex justify-between items-center px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex gap-8 items-center">
+<a class="font-display-lg-mobile text-display-lg-mobile text-primary" href="#">Gulabi Threads</a>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg tracking-wide" href="#">New In</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg tracking-wide" href="#">Totes</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg tracking-wide" href="#">Bespoke</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-lg text-body-lg tracking-wide" href="#">Heritage</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-70 transition-opacity" data-icon="favorite">favorite</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-70 transition-opacity" data-icon="shopping_bag">shopping_bag</span>
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a sophisticated woman with soft, natural makeup and elegant gold jewelry, looking slightly away from the camera in a sunlit room with warm ivory tones and soft-focus greenery in the background, luxury fashion editorial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDePb_a7i571nWcpkigd_c9QznmYu7jSe_RVo14kYNnaiqMQ1XSoer2JnZx4Y5T7AFPTVea9VSBYnrStnJylAuAMGM7K1PsL9JPcElHsRrD5YwcoBqZoIXAEU6J8DKeZPII_0WMEE9irlirYtvKHxye3V3oOCDoI9xFDKbDU39YWvh678GR7QBjFkh4OLSnkfDHUm93n-Zu-snC8dFDGVhOZo0bMkMZvbyv2gzZhivO1IeFqipHJNH7HN48Hyf6kpA1PUrgKMWtWUw"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap px-margin-desktop max-w-container-max mx-auto">
+<!-- Progress Bar -->
+<div class="max-w-3xl mx-auto mb-16">
+<div class="flex items-center justify-between relative">
+<div class="absolute top-1/2 left-0 w-full h-[1px] bg-outline-variant/30 -z-10"></div>
+<!-- Step 1: Address -->
+<div class="flex flex-col items-center bg-background px-4">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold mb-2">1</div>
+<span class="font-label-caps text-label-caps text-primary">Address</span>
+</div>
+<!-- Step 2: Shipping -->
+<div class="flex flex-col items-center bg-background px-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold mb-2 bg-surface">2</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Shipping</span>
+</div>
+<!-- Step 3: Payment -->
+<div class="flex flex-col items-center bg-background px-4">
+<div class="w-10 h-10 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold mb-2 bg-surface">3</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Payment</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left Column: Address Form -->
+<div class="lg:col-span-7 pr-0 lg:pr-12">
+<header class="mb-12">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Shipping Information</h1>
+<p class="font-body-md text-on-surface-variant">Where should we deliver your handcrafted piece?</p>
+</header>
+<form class="space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="relative">
+<input class="form-input-line font-body-md" id="full_name" placeholder=" " type="text"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="full_name">Full Name</label>
+</div>
+<div class="relative">
+<input class="form-input-line font-body-md" id="phone" placeholder=" " type="tel"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="phone">Phone Number</label>
+</div>
+</div>
+<div class="relative">
+<input class="form-input-line font-body-md" id="address" placeholder=" " type="text"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="address">Flat, House no., Building, Company, Apartment</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="relative">
+<input class="form-input-line font-body-md" id="city" placeholder=" " type="text"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="city">City</label>
+</div>
+<div class="relative">
+<input class="form-input-line font-body-md" id="state" placeholder=" " type="text"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="state">State</label>
+</div>
+<div class="relative">
+<input class="form-input-line font-body-md" id="pincode" placeholder=" " type="text"/>
+<label class="form-label absolute left-0 top-3 pointer-events-none font-body-md" for="pincode">Pincode</label>
+</div>
+</div>
+<div class="flex items-center gap-3 py-4">
+<input class="w-4 h-4 text-primary focus:ring-primary border-outline-variant" id="save_address" type="checkbox"/>
+<label class="font-body-md text-on-surface-variant" for="save_address">Save this address for faster checkout next time</label>
+</div>
+<div class="pt-8">
+<button class="w-full md:w-auto bg-on-surface text-surface py-5 px-16 font-button text-button hover:bg-primary transition-all duration-300 uppercase tracking-[0.2em]" type="submit">
+                            Proceed to Shipping
+                        </button>
+</div>
+</form>
+<!-- Trust Badges -->
+<div class="mt-16 flex flex-wrap gap-8 items-center border-t border-outline-variant/10 pt-10">
+<div class="flex items-center gap-3 opacity-60">
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+<span class="font-label-caps text-[10px] tracking-widest uppercase">Secure SSL Encryption</span>
+</div>
+<div class="flex items-center gap-3 opacity-60">
+<span class="material-symbols-outlined text-primary" data-icon="verified">verified</span>
+<span class="font-label-caps text-[10px] tracking-widest uppercase">100% Authentic Product</span>
+</div>
+<div class="flex items-center gap-3 opacity-60">
+<span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-caps text-[10px] tracking-widest uppercase">Ethical Logistics</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Order Summary -->
+<aside class="lg:col-span-5 sticky top-32">
+<div class="bg-surface-container-low p-8 border border-outline-variant/10">
+<h2 class="font-headline-sm text-headline-sm mb-8">Order Summary</h2>
+<div class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+<!-- Item 1 -->
+<div class="flex gap-4 items-center">
+<div class="w-20 h-24 bg-surface-variant flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High-resolution close-up of a premium hand-embroidered rose gold silk tote bag with delicate floral patterns. The bag is placed on a soft ivory linen surface with dramatic, cinematic lighting creating soft shadows, emphasizing the rich texture and craftsmanship of the fabric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIJ_W6KL6e6e7IcWpAnW65z_vCKd8zWvBESud8vZqE5z735BlTUcGr37sQ5vUM5c5cwspubqRC5Odnj05IAybstPmO8hw9dTE2zN-XFVmRGPUeMsdUuQ-VoW7qnFliKPlsSG17yEI5uapezhNzEgzodmzM5LATRmeYvpbqYn5v3QG23vP798M55EDzhHYe6Z7cqUQe-lok3PrZreK24rAsZtINqosEebNJ51HKOLp05WdsKIvGpJR3lMvUVn6LWna8J4vk653w80c"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-body-md font-semibold text-on-surface">The Heritage Tote</h4>
+<p class="text-on-surface-variant font-body-md text-sm">Blush / One Size</p>
+<p class="text-primary font-semibold mt-1">₹14,500</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex gap-4 items-center">
+<div class="w-20 h-24 bg-surface-variant flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="An exquisite D2C fashion accessory, a hand-woven silk scarf with intricate traditional patterns in deep burgundy and gold, draped elegantly over a minimalist ivory marble pedestal. Soft ambient lighting evokes a luxurious, high-end boutique atmosphere, captured in a clean editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARUzxVCjsLDXwe_6eV_4r35xj-C8SnFEr3HVSoZ9gEez1rqOlLIrUBg_mMji9jVo5ANnSYvfmemqOZLe-OWckeOoNHt-aVDLb9hv7FCvEemheV23nRy-Pz0G_Q6ztcSWrFgIJXRiFdO3XhjOp0sIZW18eJdfFBrDkyCJbspzQkls185BVXuhvNmXSgva4rFd5e1orTIHNHZcHonnCmqyHhbuAaermi-H_5VsmuT4mKyWrO82AFc5P_L4l57PxStxE0YD1SKAACRgo"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-body-md font-semibold text-on-surface">Silk Whisper Scarf</h4>
+<p class="text-on-surface-variant font-body-md text-sm">Deep Rose</p>
+<p class="text-primary font-semibold mt-1">₹4,200</p>
+</div>
+</div>
+</div>
+<div class="border-t border-outline-variant/20 pt-6 space-y-4">
+<div class="flex justify-between items-center font-body-md text-on-surface-variant">
+<span>Subtotal</span>
+<span>₹18,700</span>
+</div>
+<div class="flex justify-between items-center font-body-md text-on-surface-variant">
+<span>Shipping</span>
+<span class="text-primary uppercase text-xs font-bold">Calculated at next step</span>
+</div>
+<div class="flex justify-between items-center font-body-md text-on-surface-variant">
+<span>Tax (GST 12%)</span>
+<span>₹2,244</span>
+</div>
+<div class="border-t border-outline-variant/20 pt-6 flex justify-between items-center">
+<span class="font-headline-sm text-headline-sm">Total</span>
+<span class="font-headline-sm text-headline-sm">₹20,944</span>
+</div>
+</div>
+<div class="mt-8">
+<div class="relative">
+<input class="w-full bg-transparent border-b border-outline-variant/30 py-3 pr-12 focus:outline-none focus:border-primary" placeholder="Promo Code" type="text"/>
+<button class="absolute right-0 top-3 font-button text-primary text-[10px] uppercase tracking-widest hover:opacity-70 transition-opacity">Apply</button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-section-gap bg-surface-container-highest border-t border-outline-variant/10">
+<div class="flex flex-col items-center py-16 px-margin-desktop text-center gap-8 max-w-container-max mx-auto">
+<h2 class="font-display-lg text-display-lg text-primary">Gulabi Threads</h2>
+<nav class="flex flex-wrap justify-center gap-8">
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Shipping &amp; Returns</a>
+<a class="text-on-surface-variant font-body-md hover:text-secondary transition-colors" href="#">Contact Us</a>
+</nav>
+<p class="text-on-surface-variant font-body-md mt-4 opacity-70">© 2024 Gulabi Threads. All Rights Reserved.</p>
+</div>
+</footer>
+<script>
+        // Micro-interactions for form labels
+        const inputs = document.querySelectorAll('.form-input-line');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label').classList.add('text-secondary');
+            });
+            input.addEventListener('blur', () => {
+                if (!input.value) {
+                    input.parentElement.querySelector('label').classList.remove('text-secondary');
+                }
+            });
+        });
+    </script>
+</body></html>

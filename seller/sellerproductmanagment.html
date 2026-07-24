@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Product Management | Gulabi Threads Seller Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&family=Playfair+Display:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stock-warning {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(186, 26, 26, 0.2); }
+            50% { border-color: rgba(186, 26, 26, 0.8); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d4c2c2;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-bright": "#fcf9f8",
+                      "secondary-fixed-dim": "#ffb2bc",
+                      "on-tertiary-fixed-variant": "#474742",
+                      "inverse-surface": "#303030",
+                      "on-secondary-container": "#7a3c46",
+                      "on-primary-fixed-variant": "#613d3e",
+                      "inverse-primary": "#ecbaba",
+                      "error": "#ba1a1a",
+                      "on-error": "#ffffff",
+                      "surface-container-high": "#eae7e7",
+                      "on-error-container": "#93000a",
+                      "surface-dim": "#dcd9d9",
+                      "primary-fixed-dim": "#ecbaba",
+                      "surface-tint": "#7b5455",
+                      "inverse-on-surface": "#f3f0f0",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-container": "#feaab6",
+                      "background": "#fcf9f8",
+                      "on-tertiary": "#ffffff",
+                      "surface-container": "#f0eded",
+                      "outline": "#827473",
+                      "on-primary-container": "#734e4e",
+                      "tertiary-fixed": "#e4e3db",
+                      "on-background": "#1b1c1c",
+                      "primary-fixed": "#ffdad9",
+                      "on-tertiary-container": "#585852",
+                      "on-secondary-fixed-variant": "#70343e",
+                      "surface-container-highest": "#e4e2e1",
+                      "primary-container": "#f4c2c2",
+                      "primary": "#7b5455",
+                      "surface": "#fcf9f8",
+                      "on-tertiary-fixed": "#1b1c17",
+                      "tertiary": "#5f5f59",
+                      "surface-variant": "#e4e2e1",
+                      "tertiary-fixed-dim": "#c8c7bf",
+                      "secondary": "#8c4b55",
+                      "on-surface": "#1b1c1c",
+                      "secondary-fixed": "#ffd9dd",
+                      "on-surface-variant": "#504444",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f6f3f2",
+                      "outline-variant": "#d4c2c2",
+                      "on-secondary": "#ffffff",
+                      "tertiary-container": "#d0cec7",
+                      "on-secondary-fixed": "#3a0915",
+                      "on-primary-fixed": "#2f1314"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max": "1440px",
+                      "margin-desktop": "64px",
+                      "gutter": "24px",
+                      "margin-mobile": "20px",
+                      "unit": "8px",
+                      "section-gap": "120px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Playfair Display"],
+                      "body-lg": ["Montserrat"],
+                      "label-caps": ["Montserrat"],
+                      "display-lg-mobile": ["Playfair Display"],
+                      "button": ["Montserrat"],
+                      "display-lg": ["Playfair Display"],
+                      "body-md": ["Montserrat"],
+                      "headline-sm": ["Playfair Display"]
+              },
+              "fontSize": {
+                      "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "600"}],
+                      "display-lg-mobile": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "button": ["14px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                      "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant/10 flex flex-col py-8 px-4 z-50">
+<div class="mb-12 px-2">
+<h1 class="font-headline-sm text-headline-sm text-primary">Gulabi Threads</h1>
+<p class="font-label-caps text-[10px] tracking-widest text-on-surface-variant/70 uppercase">Seller Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active: Products -->
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-highest transition-colors duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-primary font-bold border-r-2 border-primary bg-surface-container-highest transition-colors duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span class="font-body-md">Products</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-highest transition-colors duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+<span class="font-body-md">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-highest transition-colors duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<span class="font-body-md">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-highest transition-colors duration-300 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="font-body-md">Analytics</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant font-medium hover:text-primary hover:bg-surface-container-highest transition-colors duration-300 rounded-lg mb-4" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+<button class="w-full py-3 px-4 bg-primary text-white font-button text-button rounded-lg hover:bg-secondary transition-all active:scale-95">
+                View Boutique
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 flex justify-between items-center h-16 px-margin-desktop">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none focus:ring-1 focus:ring-primary/30 rounded-full text-body-md transition-all" placeholder="Search products, SKUs, or categories..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="text-on-surface-variant hover:text-secondary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-secondary rounded-full border-2 border-surface"></span>
+</button>
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">mail</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/20 mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-label-caps font-bold text-on-surface">Priya Sharma</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Gold Seller</p>
+</div>
+<span class="material-symbols-outlined text-primary text-[32px] group-hover:scale-105 transition-transform">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Product Management Content -->
+<div class="p-margin-desktop flex flex-col gap-8 flex-1">
+<!-- Heading & CTA -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<div class="flex items-center gap-4 mb-2">
+<h2 class="font-headline-md text-headline-md text-on-surface">Product Management</h2>
+<span class="px-3 py-1 bg-primary-container text-on-primary-container text-label-caps rounded-full border border-primary/10">Total Products: 124</span>
+</div>
+<p class="text-on-surface-variant font-body-md max-w-2xl">Manage your catalog, monitor inventory health, and curate your boutique's latest collections.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-6 py-3 border border-outline text-on-surface font-button text-button rounded-lg hover:bg-surface-container-highest transition-all group">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                        Bulk Upload
+                    </button>
+<button class="flex items-center gap-2 px-6 py-3 bg-on-background text-white font-button text-button rounded-lg hover:bg-primary transition-all shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Add New Product
+                    </button>
+</div>
+</div>
+<!-- Filters & Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<span class="text-label-caps text-on-surface-variant">Active Listings</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">118</span>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-primary h-full w-[95%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<span class="text-label-caps text-on-surface-variant">Low Stock Alert</span>
+<span class="font-headline-sm text-headline-sm text-error">4</span>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-error h-full w-[15%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<span class="text-label-caps text-on-surface-variant">Pending Approval</span>
+<span class="font-headline-sm text-headline-sm text-secondary">2</span>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-secondary h-full w-[8%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<span class="text-label-caps text-on-surface-variant">Out of Stock</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">0</span>
+<div class="w-full bg-surface-container h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-outline-variant h-full w-0"></div>
+</div>
+</div>
+</div>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden flex flex-col">
+<!-- Table Controls -->
+<div class="p-6 border-b border-outline-variant/10 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-surface-container-low rounded-lg p-1">
+<button class="px-4 py-1.5 text-label-caps bg-surface-container-lowest text-primary rounded shadow-sm">All</button>
+<button class="px-4 py-1.5 text-label-caps text-on-surface-variant hover:text-on-surface transition-colors">Active</button>
+<button class="px-4 py-1.5 text-label-caps text-on-surface-variant hover:text-on-surface transition-colors">Draft</button>
+<button class="px-4 py-1.5 text-label-caps text-on-surface-variant hover:text-on-surface transition-colors">Out of Stock</button>
+</div>
+<div class="relative">
+<select class="appearance-none pl-4 pr-10 py-2 bg-surface-container-low border-none rounded-lg text-body-md font-medium text-on-surface-variant focus:ring-1 focus:ring-primary/20">
+<option>Category: All</option>
+<option>Ethnic Wear</option>
+<option>Fusion</option>
+<option>Accessories</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none pl-4 pr-10 py-2 bg-surface-container-low border-none rounded-lg text-body-md font-medium text-on-surface-variant focus:ring-1 focus:ring-primary/20">
+<option>Price: Any</option>
+<option>Under ₹2000</option>
+<option>₹2000 - ₹5000</option>
+<option>Over ₹5000</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<button class="flex items-center gap-2 text-label-caps text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[18px]">sort</span>
+                        Sort by: Newest
+                    </button>
+</div>
+<!-- Main Table -->
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/30 border-b border-outline-variant/10">
+<th class="py-4 px-6 w-12"><input class="rounded text-primary focus:ring-primary border-outline-variant/50" type="checkbox"/></th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Image</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Product Name</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Category</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Price</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Stock</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Status</th>
+<th class="py-4 px-4 text-label-caps text-on-surface-variant font-bold">Approval</th>
+<th class="py-4 px-6 text-label-caps text-on-surface-variant font-bold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Product Row 1 -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="py-4 px-6"><input class="rounded text-primary focus:ring-primary border-outline-variant/50" type="checkbox"/></td>
+<td class="py-4 px-4">
+<div class="w-12 h-16 bg-surface-container rounded overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close-up high-fashion photograph of a hand-embroidered rose gold silk saree draped over a minimalist mannequin. The lighting is soft and warm, highlighting the intricate floral embroidery patterns. The background is a clean, ivory studio setting, reflecting the modern editorial minimalism of Gulabi Threads." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDPvS4pnAsJ_6ac6EjE8xei5NeqQeBjVIvosNrnz0LhtHpYhYVXWTOh_QgthSLQJyBCi4H7vuY-7as9gY-W02madIBWXY3pPZEXxeHf6LR8dmTLS__e6R62jUWFdFIM0z3wxXiT8c4RAgnKwlYJ-9a3ebPwgBfOj2McfeNABuKgMYnDiBzzvL0Bhrag9a_c6o2YkrFLJY-rWrkUzUAyoiiVyDEcLqCwJ-kwatqZ8OVFjT5l_aeeQifembkb2F8lLOWqQ5LlMCKc3I"/>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Zari Rose Silk Saree</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">SKU: GT-ZS-001</p>
+</td>
+<td class="py-4 px-4 text-body-md text-on-surface-variant">Ethnic Wear</td>
+<td class="py-4 px-4 text-body-md font-semibold">₹12,499</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<input class="w-16 h-8 bg-surface-container-low border-none rounded text-center text-body-md focus:ring-1 focus:ring-primary/20" type="number" value="12"/>
+<span class="text-[10px] text-on-surface-variant uppercase">units</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-primary-container text-on-primary-container">Active</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-caps text-[10px]">Approved</span>
+</div>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-3">
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error transition-colors hover:bg-error-container rounded"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Product Row 2 (Low Stock Warning) -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="py-4 px-6"><input class="rounded text-primary focus:ring-primary border-outline-variant/50" type="checkbox"/></td>
+<td class="py-4 px-4">
+<div class="w-12 h-16 bg-surface-container rounded overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="An editorial shot of a minimalist blush pink linen tunic featuring asymmetrical button detailing. The fabric texture is crisp and luxurious. The photograph uses high-key natural lighting with soft shadows, creating a tranquil and exclusive boutique atmosphere consistent with the Quiet Luxury aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2I2SGPvTYe0GNmtOoa4TXjXLUJC0awpdDTNcQm6H3VakYElEtT27PFz2AIE81u2S8JAOB39QFcspoex1VSGuE3ESZnrmzq-Qa-uevui_4Rtz6TODX0YnrpX7dz9qlF4t4V-wQgTPGUAmVpE4t9uopT2WlerRkCsZkBMCeROJ1My7O27QO1anM5yZzo2Lyn57luwqnIsq4q5sDqmg6ettmF0JE5DPNsj-L1hlKAuIswcWokPWhLk-o4TH2lf87qF-oD5XteN05YX8"/>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Blush Linen Tunic</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">SKU: GT-BT-082</p>
+</td>
+<td class="py-4 px-4 text-body-md text-on-surface-variant">Fusion</td>
+<td class="py-4 px-4 text-body-md font-semibold">₹3,250</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<input class="w-16 h-8 bg-surface-container-low border-2 border-error/20 rounded text-center text-body-md focus:ring-1 focus:ring-error/20 stock-warning" type="number" value="3"/>
+<span class="text-[10px] text-error font-bold uppercase">Low</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-primary-container text-on-primary-container">Active</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-caps text-[10px]">Approved</span>
+</div>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-3">
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error transition-colors hover:bg-error-container rounded"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Product Row 3 (Pending Approval) -->
+<tr class="group hover:bg-surface-container-low/20 transition-colors">
+<td class="py-4 px-6"><input class="rounded text-primary focus:ring-primary border-outline-variant/50" type="checkbox"/></td>
+<td class="py-4 px-4">
+<div class="w-12 h-16 bg-surface-container rounded overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A curated arrangement of handcrafted charcoal-toned silver jewelry displayed on a matte stone surface. The image highlights the fine craftsmanship and modern geometric design. High-contrast lighting creates deep blacks and bright metallic highlights, evoking a sense of premium high-end quality and artisanal intimacy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsBDw2LsfPFf2KbVkk4XcJevKkvMZzxmX0DE8L1A9ikKhMfzFlf9bPiRNuDfopvKlI2T87ezZY3cCgwuhdf4vMakLLc4_kZgdghqpoiO_3yAvlaxU37mjXQqNL2-dtufeKwZ3LDJAfK0M2fpKaukLscC6ml-bMRBE1m1BGewvmxZiopF3QdVCY8a_L4UGFq031LLbNDdoqIPADOZeqjPepWzgsnSM1femRuP_wDsQlna3-h9S0PdBYX7to4o_zXsys4vZoqmxSnI4"/>
+</div>
+</td>
+<td class="py-4 px-4">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Hand-Carved Silver Choker</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">SKU: GT-ACC-114</p>
+</td>
+<td class="py-4 px-4 text-body-md text-on-surface-variant">Accessories</td>
+<td class="py-4 px-4 text-body-md font-semibold">₹5,800</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-2">
+<input class="w-16 h-8 bg-surface-container-low border-none rounded text-center text-body-md focus:ring-1 focus:ring-primary/20" type="number" value="10"/>
+<span class="text-[10px] text-on-surface-variant uppercase">units</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-surface-container-highest text-on-surface-variant">Draft</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-1.5 text-on-surface-variant/50">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="text-label-caps text-[10px]">Pending</span>
+</div>
+</td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-3">
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error transition-colors hover:bg-error-container rounded"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+<p class="text-label-caps text-on-surface-variant">Showing 1-10 of 124 products</p>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white text-label-caps">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-colors text-label-caps">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-colors text-label-caps">3</button>
+<span class="text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-colors text-label-caps">13</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full bg-surface-bright border-t border-outline-variant/10 flex flex-wrap justify-between items-center py-8 px-margin-desktop mt-auto">
+<div class="flex flex-col gap-1">
+<p class="font-label-caps text-primary uppercase">Gulabi Threads</p>
+<p class="text-[10px] text-on-surface-variant">© 2024 Gulabi Threads. All rights reserved.</p>
+</div>
+<div class="flex items-center gap-8">
+<a class="text-label-caps text-on-surface-variant hover:text-secondary transition-all underline decoration-transparent hover:decoration-secondary" href="#">Terms of Service</a>
+<a class="text-label-caps text-on-surface-variant hover:text-secondary transition-all underline decoration-transparent hover:decoration-secondary" href="#">Privacy Policy</a>
+<a class="text-label-caps text-on-surface-variant hover:text-secondary transition-all underline decoration-transparent hover:decoration-secondary" href="#">Seller Support</a>
+<a class="text-label-caps text-on-surface-variant hover:text-secondary transition-all underline decoration-transparent hover:decoration-secondary" href="#">Contact Us</a>
+</div>
+</footer>
+</main>
+<script>
+        // Simple micro-interaction for stock updates
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const val = parseInt(e.target.value);
+                if(val < 5) {
+                    e.target.classList.add('border-2', 'border-error/20', 'stock-warning');
+                    e.target.nextElementSibling.classList.replace('text-on-surface-variant', 'text-error');
+                    e.target.nextElementSibling.classList.add('font-bold');
+                    e.target.nextElementSibling.textContent = 'Low';
+                } else {
+                    e.target.classList.remove('border-2', 'border-error/20', 'stock-warning');
+                    e.target.nextElementSibling.classList.replace('text-error', 'text-on-surface-variant');
+                    e.target.nextElementSibling.classList.remove('font-bold');
+                    e.target.nextElementSibling.textContent = 'units';
+                }
+                
+                // Visual feedback for "Saving"
+                const row = e.target.closest('tr');
+                row.classList.add('opacity-50');
+                setTimeout(() => {
+                    row.classList.remove('opacity-50');
+                }, 400);
+            });
+        });
+    </script>
+</body></html>

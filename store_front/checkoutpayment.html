@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gulabi Threads | Secure Checkout</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Playfair+Display:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active {
+            width: 100%;
+            transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        /* Custom radio styling for premium look */
+        .payment-radio:checked + .payment-card {
+            border-color: #7b5455;
+            background-color: #fcf9f8;
+        }
+        .payment-radio:checked + .payment-card .radio-inner {
+            background-color: #7b5455;
+            transform: scale(1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased">
+<!-- TopNavBar (Fixed) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20">
+<div class="flex justify-between items-center px-margin-mobile py-4 max-w-container-max mx-auto">
+<button class="cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<h1 class="font-display-lg-mobile text-[24px] text-primary tracking-tight">Gulabi Threads</h1>
+<div class="w-6"></div> <!-- Spacer for symmetry -->
+</div>
+</header>
+<main class="pt-24 pb-32 px-margin-mobile">
+<!-- Progress Bar Section -->
+<div class="mb-10">
+<div class="flex justify-between items-end mb-3">
+<span class="font-label-caps text-label-caps text-primary uppercase">Step 03 — Payment</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">75% Complete</span>
+</div>
+<div class="h-[2px] w-full bg-outline-variant/30 overflow-hidden">
+<div class="h-full bg-primary step-active" style="width: 75%;"></div>
+</div>
+</div>
+<!-- Order Summary Accordion (Collapsed) -->
+<details class="group mb-8 border-b border-outline-variant/10 pb-4">
+<summary class="flex justify-between items-center cursor-pointer list-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'opsz' 20">shopping_bag</span>
+<span class="font-body-lg text-body-lg font-semibold">Order Summary</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md text-primary">₹14,500</span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</div>
+</summary>
+<div class="mt-6 space-y-4 px-2">
+<div class="flex gap-4">
+<div class="w-16 h-20 bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High-end fashion photography of a luxurious handcrafted Gulabi Threads tote bag featuring intricate heritage embroidery. The lighting is soft and directional, highlighting the rich textile textures and blush pink palette. The scene is minimalist with a high-fashion boutique aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkVCTTj8-EN4ZmT1IdjnNfeTSLywmVD1dkVPbr-XPDSl5YkHE_7p_k-NM3Jtzia25ZpOeIDWb6YRUET3Noslc6WOyLv3wP-8rtSg9CwRsi7NIGHriAN4W7Nxb_ezGqbVcr9_9LTf292Iev8uBhF6wHmR2_iJw1VyA9tQ3bUGwb-CacqGcYgueKf1CLxE6Y1IGnM0d3baH7UiaV2kGhzMi_6SSk9tA094ehmzc8WnJ1Js6aOFet2gyvHjRVda01l9jlkGBz9-os1Go"/>
+</div>
+<div class="flex-grow">
+<p class="font-body-md text-body-md font-semibold">Heritage Silk Tote</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">Qty: 1 • Color: Rose Gold</p>
+<p class="font-body-md text-body-md mt-1">₹12,000</p>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/10 space-y-2">
+<div class="flex justify-between text-on-surface-variant text-sm">
+<span>Subtotal</span>
+<span>₹12,000</span>
+</div>
+<div class="flex justify-between text-on-surface-variant text-sm">
+<span>Shipping</span>
+<span>₹2,500</span>
+</div>
+<div class="flex justify-between font-semibold text-on-surface pt-2">
+<span>Total</span>
+<span>₹14,500</span>
+</div>
+</div>
+</div>
+</details>
+<!-- Payment Methods -->
+<section>
+<h2 class="font-headline-sm text-headline-sm mb-6">Select Payment Method</h2>
+<div class="space-y-4">
+<!-- Razorpay -->
+<label class="block relative cursor-pointer group">
+<input checked="" class="hidden payment-radio" name="payment" type="radio" value="razorpay"/>
+<div class="payment-card flex items-center justify-between p-5 border border-outline-variant/30 rounded-lg transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-4">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center p-[3px]">
+<div class="radio-inner w-full h-full rounded-full bg-transparent scale-0 transition-transform duration-200"></div>
+</div>
+<span class="font-body-lg text-body-lg">Razorpay (All Methods)</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">bolt</span>
+</div>
+</label>
+<!-- UPI -->
+<label class="block relative cursor-pointer group">
+<input class="hidden payment-radio" name="payment" type="radio" value="upi"/>
+<div class="payment-card flex items-center justify-between p-5 border border-outline-variant/30 rounded-lg transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-4">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center p-[3px]">
+<div class="radio-inner w-full h-full rounded-full bg-transparent scale-0 transition-transform duration-200"></div>
+</div>
+<span class="font-body-lg text-body-lg">UPI (GPay, PhonePe)</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">qr_code</span>
+</div>
+</label>
+<!-- Cards -->
+<label class="block relative cursor-pointer group">
+<input class="hidden payment-radio" name="payment" type="radio" value="card"/>
+<div class="payment-card flex items-center justify-between p-5 border border-outline-variant/30 rounded-lg transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-4">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center p-[3px]">
+<div class="radio-inner w-full h-full rounded-full bg-transparent scale-0 transition-transform duration-200"></div>
+</div>
+<span class="font-body-lg text-body-lg">Credit / Debit Card</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+</div>
+</label>
+<!-- Wallet -->
+<label class="block relative cursor-pointer group">
+<input class="hidden payment-radio" name="payment" type="radio" value="wallet"/>
+<div class="payment-card flex items-center justify-between p-5 border border-outline-variant/30 rounded-lg transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-4">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center p-[3px]">
+<div class="radio-inner w-full h-full rounded-full bg-transparent scale-0 transition-transform duration-200"></div>
+</div>
+<span class="font-body-lg text-body-lg">Wallet</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">account_balance_wallet</span>
+</div>
+</label>
+<!-- COD -->
+<label class="block relative cursor-pointer group">
+<input class="hidden payment-radio" name="payment" type="radio" value="cod"/>
+<div class="payment-card flex items-center justify-between p-5 border border-outline-variant/30 rounded-lg transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-4">
+<div class="w-5 h-5 rounded-full border border-outline flex items-center justify-center p-[3px]">
+<div class="radio-inner w-full h-full rounded-full bg-transparent scale-0 transition-transform duration-200"></div>
+</div>
+<span class="font-body-lg text-body-lg">Cash on Delivery</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">payments</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Trust Indicators -->
+<div class="mt-12 flex flex-col items-center gap-4 opacity-60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">lock</span>
+<span class="text-[10px] font-label-caps tracking-widest uppercase">SSL Secured Checkout</span>
+</div>
+<div class="flex gap-6 grayscale contrast-125">
+<!-- PCI DSS Compliance Indicator -->
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-[10px] font-label-caps font-bold">PCI-DSS</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">shield</span>
+<span class="text-[10px] font-label-caps font-bold">100% SECURE</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-lg border-t border-outline-variant/10 px-margin-mobile py-6 z-50">
+<button class="w-full bg-on-surface text-surface py-5 px-8 flex items-center justify-between active:scale-[0.98] transition-all duration-300">
+<span class="font-button tracking-[0.2em] uppercase">Complete Order</span>
+<div class="flex items-center gap-3">
+<span class="font-body-lg text-body-lg">₹14,500</span>
+<span class="material-symbols-outlined">arrow_forward_ios</span>
+</div>
+</button>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('.payment-radio').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                // Add a small scale-up animation to the selected card
+                const card = e.target.closest('.payment-card');
+                card.classList.add('scale-[1.02]');
+                setTimeout(() => card.classList.remove('scale-[1.02]'), 200);
+            });
+        });
+
+        // Simple smooth scroll for long lists
+        window.addEventListener('load', () => {
+            document.body.classList.add('opacity-100');
+        });
+    </script>
+</body></html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Your Cart | Gulabi Threads</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&family=Playfair+Display:wght@100..900&display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#ecbaba",
+                    "outline": "#827473",
+                    "on-primary-fixed": "#2f1314",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#474742",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#7b5455",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#734e4e",
+                    "tertiary-fixed": "#e4e3db",
+                    "inverse-surface": "#303030",
+                    "tertiary-container": "#d0cec7",
+                    "on-tertiary-container": "#585852",
+                    "inverse-primary": "#ecbaba",
+                    "primary": "#7b5455",
+                    "surface-dim": "#dcd9d9",
+                    "secondary-fixed": "#ffd9dd",
+                    "secondary-container": "#feaab6",
+                    "on-secondary-fixed": "#3a0915",
+                    "on-secondary-container": "#7a3c46",
+                    "surface-variant": "#e4e2e1",
+                    "on-surface-variant": "#504444",
+                    "secondary": "#8c4b55",
+                    "surface-bright": "#fcf9f8",
+                    "on-surface": "#1b1c1c",
+                    "inverse-on-surface": "#f3f0f0",
+                    "tertiary": "#5f5f59",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "secondary-fixed-dim": "#ffb2bc",
+                    "on-secondary-fixed-variant": "#70343e",
+                    "surface-container-high": "#eae7e7",
+                    "outline-variant": "#d4c2c2",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#c8c7bf",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e4e2e1",
+                    "surface-container": "#f0eded",
+                    "on-tertiary-fixed": "#1b1c17",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#f6f3f2",
+                    "primary-container": "#f4c2c2",
+                    "surface": "#fcf9f8",
+                    "on-primary-fixed-variant": "#613d3e",
+                    "primary-fixed": "#ffdad9",
+                    "on-background": "#1b1c1c",
+                    "background": "#fcf9f8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "container-max": "1440px",
+                    "margin-mobile": "20px",
+                    "gutter": "24px",
+                    "margin-desktop": "64px",
+                    "section-gap": "120px"
+            },
+            "fontFamily": {
+                    "display-lg-mobile": ["Playfair Display"],
+                    "label-caps": ["Montserrat"],
+                    "headline-md": ["Playfair Display"],
+                    "display-lg": ["Playfair Display"],
+                    "button": ["Montserrat"],
+                    "body-lg": ["Montserrat"],
+                    "body-md": ["Montserrat"],
+                    "headline-sm": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "button": ["14px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .luxury-shadow {
+            box-shadow: 0px 12px 32px rgba(45, 45, 45, 0.05);
+        }
+        .line-input {
+            border: none;
+            border-bottom: 1px solid rgba(80, 68, 68, 0.2);
+            background: transparent;
+            border-radius: 0;
+            padding: 8px 0;
+        }
+        .line-input:focus {
+            outline: none;
+            border-bottom: 1px solid #7b5455;
+            box-shadow: none;
+        }
+        .product-hover-scale img {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .product-hover-scale:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body-md text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-20 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline/10">
+<div class="flex-1 hidden md:flex gap-8">
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">New In</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Bags</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Essentials</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">About</a>
+</div>
+<div class="flex justify-center flex-1">
+<h1 class="font-display-lg text-headline-sm tracking-widest uppercase text-primary">Gulabi Threads</h1>
+</div>
+<div class="flex-1 flex justify-end gap-6 items-center">
+<button class="material-symbols-outlined text-primary hover:scale-95 duration-200">person</button>
+<div class="relative">
+<button class="material-symbols-outlined text-primary hover:scale-95 duration-200">shopping_bag</button>
+<span class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">1</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-32 pb-section-gap px-margin-desktop max-w-container-max mx-auto">
+<header class="mb-12">
+<h2 class="font-display-lg text-headline-md text-on-surface mb-2">Your Curated Collection</h2>
+<div class="w-24 h-px bg-primary/30"></div>
+</header>
+<div class="grid grid-cols-12 gap-gutter items-start">
+<!-- Cart Items List (8 Columns) -->
+<section class="col-span-12 lg:col-span-8 space-y-8">
+<!-- Item 1 -->
+<div class="flex gap-8 pb-8 border-b border-outline/10 group">
+<div class="w-48 aspect-[3/4] overflow-hidden bg-surface-container-low product-hover-scale">
+<img class="w-full h-full object-cover" data-alt="High-fashion studio photograph of 'The Aria Silk Tote', a luxurious handcrafted handbag in a soft blush pink silk fabric with delicate embroidery. The bag is positioned against a warm ivory minimalist background with soft cinematic lighting that emphasizes the rich texture of the silk and the premium rose gold hardware." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF_XjciDoBGoXKl33a0jt7kK_hYN7npKJ-DU31SB7XtHqYPQBVvT6dz4HflYcV2Pl6E_z3FrRkjsnQ8DvPAMkoNre3n_sX4XwF27l6WR3eJcXr62rE1mxqwsfrVpGGSKhhZTr-qjfEanDbUmy3LYAFvSH7RqGohy7Phqjj2xD7m1U4ayFtJACDIYhsj0iB3Zv1q3KYNwTkd74T2qx1-bfGnNevqea-Z9aXMkjsQPSo8R9RVvMwGEfaFEscFoBC4w7LcN0invm9JBw"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">The Aria Silk Tote</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Blush Rose | One Size</p>
+</div>
+<p class="font-headline-sm text-headline-sm text-primary">$495.00</p>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex items-center border border-outline/20 rounded-full px-4 py-1">
+<button class="hover:text-primary transition-colors duration-200">-</button>
+<span class="px-6 font-medium">1</span>
+<button class="hover:text-primary transition-colors duration-200">+</button>
+</div>
+<button class="font-label-caps text-label-caps text-on-surface-variant hover:text-error transition-all duration-300 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                REMOVE
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 2 (Optional for visual flow) -->
+<div class="flex gap-8 pb-8 border-b border-outline/10 group opacity-60">
+<div class="w-48 aspect-[3/4] overflow-hidden bg-surface-container-low product-hover-scale">
+<img class="w-full h-full object-cover" data-alt="A premium close-up of a designer leather accessory on a marble surface. The lighting is ethereal and warm, typical of a luxury fashion editorial. The object is a masterpiece of craftsmanship with fine stitching and gold foil brand detailing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClnbJfeNMqINRlJHQ4mSStNt6EXQayAAZRz0jhOMhtg1tAYqOBm-yTXLLUTnL9_vbP14aSSgsyW4jczHC3bP7VeK-J6OL3MwYknI1lRo3dLDZTscwk9V2meIEWN9T0zTYWndjHof7w4prOsCKXEOKxV78XGzBUg9C_7kH49pI2FTio178j3LB-EgaGlu-9xTioh-2sYTqgld54I5dOzTCkD6KqZyfeaDu4Dlf60ZAwzRn-C8dwa7YOOfAz_G4AB1PYItLrPbDWhFM"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Gilded Satin Slip</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Champagne | Medium</p>
+</div>
+<p class="font-headline-sm text-headline-sm text-primary">$280.00</p>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex items-center border border-outline/20 rounded-full px-4 py-1">
+<button class="hover:text-primary transition-colors duration-200">-</button>
+<span class="px-6 font-medium">1</span>
+<button class="hover:text-primary transition-colors duration-200">+</button>
+</div>
+<button class="font-label-caps text-label-caps text-on-surface-variant hover:text-error transition-all duration-300 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                REMOVE
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Order Summary Sidebar (4 Columns) -->
+<aside class="col-span-12 lg:col-span-4 sticky top-32">
+<div class="bg-surface-container-low p-8 luxury-shadow border border-outline/5">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-8">Order Summary</h3>
+<div class="mb-8">
+<label class="font-label-caps text-label-caps text-on-surface-variant mb-2 block">COUPON CODE</label>
+<div class="flex gap-4">
+<input class="line-input flex-1 font-body-md" placeholder="Enter code" type="text"/>
+<button class="font-button text-button border-b border-primary text-primary hover:bg-primary hover:text-white px-4 transition-all duration-300">APPLY</button>
+</div>
+</div>
+<div class="space-y-4 mb-8 pt-8 border-t border-outline/10">
+<div class="flex justify-between text-on-surface-variant font-body-md">
+<span>Subtotal</span>
+<span>$495.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-md">
+<span>Shipping</span>
+<span class="text-secondary font-semibold">FREE</span>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-md">
+<span>GST (18%)</span>
+<span>$89.10</span>
+</div>
+</div>
+<div class="flex justify-between items-baseline pt-6 border-t border-primary/20 mb-10">
+<span class="font-headline-sm text-on-surface">Total</span>
+<span class="font-display-lg text-headline-md text-primary">$584.10</span>
+</div>
+<button class="w-full bg-primary text-on-primary py-5 font-button text-button tracking-widest hover:bg-secondary transition-colors duration-500 luxury-shadow flex items-center justify-center gap-3">
+                        PROCEED TO CHECKOUT
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<div class="mt-8 flex justify-center gap-6 opacity-40">
+<span class="material-symbols-outlined">payments</span>
+<span class="material-symbols-outlined">lock</span>
+<span class="material-symbols-outlined">verified</span>
+</div>
+</div>
+</aside></div>
+<!-- Recommended Products Carousel -->
+<section class="mt-section-gap">
+<div class="flex justify-between items-end mb-12">
+<h3 class="font-display-lg text-headline-md text-on-surface">Complete Your Ensemble</h3>
+<div class="flex gap-4">
+<button class="w-12 h-12 rounded-full border border-outline/20 flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-outline/20 flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<!-- Recommended Item 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden bg-surface-container-low mb-4 relative product-hover-scale">
+<div class="absolute top-4 left-4 z-10 font-label-caps text-label-caps border border-on-surface px-2 py-1 bg-surface/80">NEW IN</div>
+<img class="w-full h-full object-cover" data-alt="Editorial fashion photography of a luxurious pure silk scarf with intricate botanical patterns in shades of rose gold and dusty pink. The scarf is draped elegantly over a minimal white stone pedestal. Soft, morning sunlight creates long, gentle shadows, emphasizing the premium quality and soft sheen of the silk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEn_o2T_W5LBPVyxNDmuoB3kX2xrGU3wiuH9WVeDqo420Xsp6J8BcXNSrC84nQFwuNTUnH44fFxDbvFiPz30RvLWYKpoEihJFiLTGFze-jg0oqAV_g_Cvm7zfu9FNpwXj7uweU1HGmJVTNfT0CoBMqtD5C0J8DEckEeIouNLa2o7Lr8sru3nKtWjZJLLYrHflMo5cfaTyUTcd3QkxeXVCk2WF9DsUoQzycamAaIVWjrm1IopmiltCISWggGSA1ntcQLXb4Rwf16Ds"/>
+</div>
+<div class="text-center">
+<h4 class="font-headline-sm text-body-lg text-on-surface group-hover:text-primary transition-colors">Silk Scarf</h4>
+<p class="font-body-md text-on-surface-variant">$125.00</p>
+</div>
+</div>
+<!-- Recommended Item 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden bg-surface-container-low mb-4 product-hover-scale">
+<img class="w-full h-full object-cover" data-alt="A sophisticated leather wallet in a muted taupe-pink shade, featuring a minimal rose gold clasp with the 'Gulabi Threads' logo subtly engraved. The wallet is shown held by a hand with manicured nails against a soft ivory backdrop. The image style is clean, modern, and feminine, focusing on textures and high-end detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4q7Z5AQUWx_nOl18aVgxn9u_e_nfReIj6i6HWJGiFfhpXxKbPH1yKUCJtWL0CikfANmrHWifCEm3WRCs3TA7axq_9AibOAo5R5E3l66VilvlWAap1fBhSbwN11oKlV_kOH5ahy1K1e2afkDCCea5jRLcJtPuiFGD4AwvosTJOQnnDEm0PFZwQaEzQrApRsfBmIZDBWlVm6FcmJeW28V8UB22P6DQZ-dGHc0xTKrd6WwzevJiB20FvqWYEac1ZbFdyYrNJVO4HzjM"/>
+</div>
+<div class="text-center">
+<h4 class="font-headline-sm text-body-lg text-on-surface group-hover:text-primary transition-colors">Leather Wallet</h4>
+<p class="font-body-md text-on-surface-variant">$195.00</p>
+</div>
+</div>
+<!-- Recommended Item 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden bg-surface-container-low mb-4 product-hover-scale">
+<img class="w-full h-full object-cover" data-alt="Premium fashion studio shot of a delicate rose gold pendant necklace resting on a velvet cushion. The jewelry piece features a small, ethically sourced gemstone in a soft blush hue. The lighting is moody yet bright, highlighting the reflective surfaces of the gold and the clarity of the gem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHbG1DRIgiSeVwaOP2g7no0c9vDRVSLljnI7sUqKbwUnBTOT9QjVHHqf0RtxDQGZtWMIGKDSUarQUzAOP84tBcMLNfb7CDRZ-bWyXYNxhrYHz8GWce39FkABmJHymvFyTqhHlwHGtRHhnl1coWRuCUqd23JB59XJLilIbZI5wftVd6XcvZ1gUyOqTqfnygkuaEye_C1GxFwMBDXB857TiOff6ZXqN4qHnMXdxFGhKcfM5h-cE7JEwjw3ToxOH2svhb8TjD2dYprnk"/>
+</div>
+<div class="text-center">
+<h4 class="font-headline-sm text-body-lg text-on-surface group-hover:text-primary transition-colors">Rose Bloom Pendant</h4>
+<p class="font-body-md text-on-surface-variant">$340.00</p>
+</div>
+</div>
+<!-- Recommended Item 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden bg-surface-container-low mb-4 product-hover-scale">
+<img class="w-full h-full object-cover" data-alt="High-end fashion editorial photography of a pair of elegant suede heels in a dusty rose color. The shoes are placed on a sleek, minimalist floor with a soft shadow play. The image conveys a sense of quiet luxury and impeccable craftsmanship, with a focus on the rich texture of the suede and the elegant silhouette of the heel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh1z0ta20KqBmA-mefuimcPUj4p0uEZuD58m125rDQu8yej26KKjfXM5fihgypAzoTUvVYZHCGWvMo5g8N9Dr24GcRzFVALHgfP_vBfRcolNVuNJpPB-z-SV8zxKX7P832U6LLoi1koLhWgxuDZNjpRk8W_wjVRaB5OGOyBwELZPBf9LbvW6ga8ST7usD9uVOQlAaPaTZz9L-cbVO88ZIF9bMG9SPZlfJ-4wujfsLGmICb6W6-hkSr3W6_cyrFcYuYzuPT-3N-Zw4"/>
+</div>
+<div class="text-center">
+<h4 class="font-headline-sm text-body-lg text-on-surface group-hover:text-primary transition-colors">Suede Gala Heels</h4>
+<p class="font-body-md text-on-surface-variant">$420.00</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-margin-desktop flex flex-col md:flex-row justify-between bg-surface-container-low">
+<div class="mb-12 md:mb-0">
+<h2 class="font-display-lg text-headline-sm text-primary mb-6">Gulabi Threads</h2>
+<p class="max-w-xs text-on-surface-variant font-body-md mb-8">Elevating modern femininity through artisanal craft and timeless silk silhouettes.</p>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-100 opacity-60">brand_awareness</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-100 opacity-60">share</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-100 opacity-60">mail</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-16">
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface mb-6">EXPLORE</h4>
+<ul class="space-y-4">
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Shipping & Returns</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Sustainability</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Store Locator</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface mb-6">ASSISTANCE</h4>
+<ul class="space-y-4">
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Contact Us</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Size Guide</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">Care Instructions</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-secondary transition-all" href="#">FAQs</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-16 md:mt-0 md:text-right flex flex-col justify-between">
+<div class="mb-8">
+<h4 class="font-label-caps text-label-caps text-on-surface mb-4">JOIN THE ATELIER</h4>
+<div class="flex gap-2">
+<input class="line-input text-sm" placeholder="Email Address" type="email"/>
+<button class="material-symbols-outlined text-primary">arrow_forward</button>
+</div>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-80">© 2024 Gulabi Threads. All rights reserved.</p>
+</div>
+</footer>
+<script>
+        // Micro-interactions for the cart
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        // Atmospheric fade-in effect on scroll
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-8');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section, aside').forEach(el => {
+            el.classList.add('transition-all', 'duration-1000', 'opacity-0', 'translate-y-8');
+            observer.observe(el);
+        });
+    </script>
+</body></html>

@@ -1,3 +1,4 @@
+import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from .config import settings
@@ -7,7 +8,7 @@ client: AsyncIOMotorClient | None = None
 
 async def connect() -> None:
     global client
-    client = AsyncIOMotorClient(settings.mongo_uri, serverSelectionTimeoutMS=3000)
+    client = AsyncIOMotorClient(settings.mongo_uri, serverSelectionTimeoutMS=20000, tlsCAFile=certifi.where())
     await client.admin.command("ping")
     db = get_db()
     await db.products.create_index("slug", unique=True)

@@ -170,6 +170,7 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .checkout-choice span { color: var(--muted); }
 .checkout-choice:hover, .checkout-choice.recommended { border-color: var(--primary); background: var(--surface-low); box-shadow: 0 12px 30px rgba(204,89,128,.11); }
 .checkout-note { margin-top: 20px; border: 1px solid rgba(204,89,128,.25); border-radius: 8px; background: var(--surface-low); padding: 14px 16px; color: var(--primary); }
+.checkout-note.compact { margin-top: 0; }
 .inline-auth { display: grid; gap: 14px; border: 1px solid rgba(212,194,194,.32); border-radius: 8px; background: var(--surface-low); padding: 18px; }
 .inline-auth label { display: grid; gap: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 700; }
 .inline-auth input { border: 1px solid rgba(212,194,194,.8); border-radius: 6px; background: var(--surface-top); padding: 12px; outline-color: var(--primary); }
@@ -223,6 +224,9 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .google-button { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid rgba(130,116,115,.28); border-radius: 4px; color: var(--text); font-weight: 700; }
 .google-button span { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: var(--surface-low); color: var(--primary); font-family: "Playfair Display", serif; font-size: 18px; }
 .google-button:hover { border-color: var(--primary); background: var(--surface-low); }
+.google-rendered-button { min-height: 44px; display: grid; place-items: center; overflow: hidden; }
+.remember-row { display: flex !important; grid-template-columns: none !important; align-items: center; gap: 10px !important; color: var(--muted); text-transform: none !important; letter-spacing: 0 !important; font-size: 13px !important; font-weight: 500 !important; }
+.remember-row input { width: 16px !important; height: 16px; padding: 0 !important; border: 1px solid rgba(130,116,115,.35) !important; accent-color: var(--primary); }
 .auth-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 10px; font-weight: 700; }
 .auth-divider::before, .auth-divider::after { content: ""; height: 1px; flex: 1; background: rgba(130,116,115,.2); }
 .auth-link { justify-self: center; color: var(--primary); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; border-bottom: 1px solid transparent; }
@@ -301,6 +305,14 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .image-upload-preview img { width: 58px; height: 74px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(212,194,194,.65); background: var(--surface-low); }
 .form-error { margin: 0; color: var(--danger); }
 .form-error.standalone { margin: 0 0 18px; }
+.track-page { max-width: 1040px; }
+.track-panel { max-width: 860px; margin: 0 auto; }
+.track-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 18px; align-items: end; margin-top: 20px; }
+.track-form .primary-button { min-width: 170px; }
+.tracked-order { display: grid; gap: 18px; margin-top: 28px; border-top: 1px solid rgba(130,116,115,.16); padding-top: 24px; }
+.tracked-order-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.tracked-order-head h2 { color: var(--primary); font-size: clamp(30px, 4vw, 48px); }
+.tracked-order-head strong { font-size: 28px; color: var(--text); }
 .form-actions { display: flex; justify-content: flex-end; gap: 12px; }
 .admin-product-form button:disabled { opacity: .7; cursor: progress; }
 .data-table { background: var(--surface-top); border: 1px solid rgba(212,194,194,.25); border-radius: 8px; overflow: auto; box-shadow: 0 8px 22px rgba(45,45,45,.03); -webkit-overflow-scrolling: touch; }
@@ -371,6 +383,8 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .account-wishlist article { grid-template-columns: 96px minmax(0, 1fr); }
   .account-wishlist-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; min-width: 0; }
   .account-panel-heading { align-items: start; flex-direction: column; }
+  .track-form { grid-template-columns: 1fr; }
+  .track-form .primary-button { width: 100%; }
   .address-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .address-actions { justify-content: start; }
   .order-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

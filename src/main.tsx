@@ -7,11 +7,17 @@ import { categories as fallbackCategories, products, orders } from "./data/catal
 import { navigate } from "./lib/navigation";
 import { AccountPage, DashboardPage } from "./pages/DashboardPages";
 import { AdminLogoutPage, LoginPage, LogoutPage } from "./pages/AuthPages";
-import { CartPage, CheckoutPage, HomePage, NotFound, OrderConfirmationPage, ProductPage, ShopPage } from "./pages/StorePages";
+import { CartPage, CheckoutPage, HomePage, NotFound, OrderConfirmationPage, ProductPage, ShopPage, TrackOrderPage } from "./pages/StorePages";
 import type { AuthSession, CartItem, CategoryRecord, CustomerAccount, CustomerRecord, OrderRow, OrderStatus, Product, ProductInput } from "./types";
 import "./styles.css";
 
 type AdminSection = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers";
+
+function customerNextPath(fallback = "/") {
+  const next = new URLSearchParams(window.location.search).get("next") || fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/admin")) return fallback;
+  return next;
+}
 
 function App() {
   const path = usePath();
@@ -24,11 +30,34 @@ function App() {
   const [wishlist, setWishlist] = useLocalState<string[]>("gt-wishlist", ["heritage-silk-tote"]);
   const [customerOrderIds, setCustomerOrderIds] = useLocalState<string[]>("gt-customer-order-ids", []);
   const [lastOrder, setLastOrder] = useLocalState<OrderRow | null>("gt-last-order", null);
-  const [customerSession, setCustomerSession] = useLocalState<AuthSession | null>("gt-customer-session", null);
+  const [customerSession, setCustomerSession] = useState<AuthSession | null>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("gt-customer-session") || sessionStorage.getItem("gt-customer-session") || "null") as AuthSession | null;
+    } catch {
+      return null;
+    }
+  });
   const [customerAccounts, setCustomerAccounts] = useLocalState<CustomerAccount[]>("gt-customer-accounts", []);
   const [adminSession, setAdminSession] = useLocalState<AuthSession | null>("gt-admin-session", null);
   const [adminConfigured, setAdminConfigured] = useState(true);
   const [toast, setToast] = useState("");
+
+  const persistCustomerSession = (session: AuthSession | null, remember = true) => {
+    setCustomerSession(session);
+    if (!session) {
+      localStorage.removeItem("gt-customer-session");
+      sessionStorage.removeItem("gt-customer-session");
+      return;
+    }
+    const serialized = JSON.stringify(session);
+    if (remember) {
+      localStorage.setItem("gt-customer-session", serialized);
+      sessionStorage.removeItem("gt-customer-session");
+    } else {
+      sessionStorage.setItem("gt-customer-session", serialized);
+      localStorage.removeItem("gt-customer-session");
+    }
+  };
 
   useEffect(() => {
     localStorage.removeItem("gt-customer-accounts");
@@ -40,13 +69,13 @@ function App() {
 
   useEffect(() => {
     if (customerSession && !customerSession.token) {
-      setCustomerSession(null);
+      persistCustomerSession(null);
       setOrderRows([]);
       return;
     }
     if (!customerSession?.token) return;
     apiRequest<OrderRow[]>("/account/orders").then(setOrderRows).catch(() => setOrderRows([]));
-  }, [customerSession, setCustomerSession]);
+  }, [customerSession]);
 
   useEffect(() => {
     if (adminSession && !adminSession.token) {
@@ -160,14 +189,14 @@ function App() {
     setOrderRows((items) => items.map((item) => (item.id === orderId ? updated : item)));
     return updated;
   };
-  const loginCustomer = async (session: AuthSession, password?: string) => {
+  const loginCustomer = async (session: AuthSession, password?: string, remember = true) => {
     const verified = session.token ? session : await apiRequest<AuthSession>("/customer/auth/login", {
       method: "POST",
       body: JSON.stringify({ identifier: session.email, password }),
     });
-    setCustomerSession(verified);
-    setToast("Welcome back");
-    navigate("/");
+    persistCustomerSession(verified, remember);
+    setToast(cartCount || wishlist.length ? "Welcome back. Your bag and wishlist are still here." : "Welcome back");
+    navigate(customerNextPath("/"));
   };
   const createCustomerAccount = async (account: CustomerAccount) => {
     const created = await apiRequest<AuthSession>("/customer/auth/register", {
@@ -175,9 +204,33 @@ function App() {
       body: JSON.stringify({ name: account.name, email: account.email, phone: account.phone, password: account.password }),
     });
     setCustomerAccounts([]);
-    setCustomerSession(created);
+    persistCustomerSession(created);
     setToast("Account created");
-    navigate("/");
+    navigate(customerNextPath("/"));
+  };
+  const loginCustomerWithGoogle = async (credential: string) => {
+    const verified = await apiRequest<AuthSession>("/customer/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential }),
+    });
+    persistCustomerSession(verified);
+    setToast(cartCount || wishlist.length ? "Signed in with Google. Your bag and wishlist are still here." : "Signed in with Google");
+    navigate(customerNextPath("/"));
+  };
+  const forgotCustomerPassword = async (identifier: string) => {
+    await apiRequest<{ message: string }>("/customer/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ identifier }),
+    });
+  };
+  const resetCustomerPassword = async (token: string, password: string) => {
+    const verified = await apiRequest<AuthSession>("/customer/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    });
+    persistCustomerSession(verified);
+    setToast("Password updated");
+    navigate(customerNextPath("/account"));
   };
   const loginAdmin = async (session: AuthSession, password?: string) => {
     const verified = await apiRequest<AuthSession>("/admin/auth/login", {
@@ -199,7 +252,7 @@ function App() {
     navigate("/admin");
   };
   const logoutCustomer = () => {
-    setCustomerSession(null);
+    persistCustomerSession(null);
     setCustomerOrderIds([]);
     setToast("Logged out");
     navigate("/");
@@ -213,6 +266,14 @@ function App() {
 
   const categoryNames = categoryRows.length ? categoryRows.filter((category) => category.active && !category.archived).map((category) => category.name) : [...fallbackCategories];
   const storeProps = { cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, isCustomerAuthed };
+  const authProps = {
+    onLogin: loginCustomer,
+    customerAccounts,
+    onCreateCustomer: createCustomerAccount,
+    onGoogleLogin: loginCustomerWithGoogle,
+    onForgotPassword: forgotCustomerPassword,
+    onResetPassword: resetCustomerPassword,
+  };
   const cartProps = { ...storeProps, cart, cartProducts, subtotal, updateQty, customerSession, customerAccounts, onCustomerLogin: loginCustomer, onCreateCustomer: createCustomerAccount };
   const routePath = path.split("?")[0];
   const productSlug = routePath.startsWith("/product/") ? routePath.split("/").pop() || "" : "";
@@ -232,13 +293,17 @@ function App() {
       <CheckoutPage {...cartProps} />
     ) : routePath === "/order-confirmation" ? (
       <OrderConfirmationPage order={lastOrder} cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} />
+    ) : routePath === "/track" ? (
+      <TrackOrderPage cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} />
+    ) : routePath === "/reset-password" ? (
+      customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section="orders" products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} onLogout={logoutCustomer} /> : <LoginPage mode="customer" {...authProps} />
     ) : routePath === "/login" ? (
-      customerSession ? <HomePage {...storeProps} /> : <LoginPage mode="customer" onLogin={loginCustomer} customerAccounts={customerAccounts} onCreateCustomer={createCustomerAccount} />
+      customerSession ? <HomePage {...storeProps} /> : <LoginPage mode="customer" {...authProps} />
     ) : routePath.startsWith("/account") ? (
-      customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section={accountSection} products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} onLogout={logoutCustomer} /> : <LoginPage mode="customer" onLogin={loginCustomer} customerAccounts={customerAccounts} onCreateCustomer={createCustomerAccount} />
+      customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section={accountSection} products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} onLogout={logoutCustomer} /> : <LoginPage mode="customer" {...authProps} />
     ) : routePath === "/logout" ? (
       <LogoutPage onLogout={() => {
-        setCustomerSession(null);
+        persistCustomerSession(null);
         setCustomerOrderIds([]);
       }} />
     ) : routePath === "/admin/login" ? (

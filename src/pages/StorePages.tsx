@@ -80,6 +80,36 @@ function shopPath(category?: string | "All") {
   return category && category !== "All" ? `/shop?category=${encodeURIComponent(category)}` : "/shop";
 }
 
+function loginPath(next: string) {
+  return `/login?next=${encodeURIComponent(next)}`;
+}
+
+function saveCheckoutAddress(address: AddressPayload) {
+  const raw = localStorage.getItem("gt-customer-addresses");
+  let existing: Array<Record<string, string>> = [];
+  try {
+    existing = raw ? JSON.parse(raw) as Array<Record<string, string>> : [];
+  } catch {
+    existing = [];
+  }
+  const signature = `${address.phone}|${address.address}|${address.pincode}`.toLowerCase();
+  const alreadySaved = existing.some((item) => `${item.phone || ""}|${item.address || ""}|${item.pincode || ""}`.toLowerCase() === signature);
+  if (alreadySaved) return;
+  localStorage.setItem("gt-customer-addresses", JSON.stringify([
+    ...existing,
+    {
+      id: `address-${Date.now()}`,
+      label: existing.length ? "Saved Address" : "Home",
+      fullName: address.full_name,
+      phone: address.phone,
+      address: [address.address, address.address_line2].filter(Boolean).join(", "),
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+    },
+  ]));
+}
+
 function categoryFromUrl(categories: string[]): Category | "All" {
   const category = new URLSearchParams(window.location.search).get("category") || "";
   return categories.includes(category) ? category : "All";
@@ -97,9 +127,9 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
         </nav>
         <div className="nav-actions">
           <button aria-label="Search"><Search size={19} /></button>
-          <button aria-label="Wishlist" onClick={() => navigate(isCustomerAuthed ? "/account/wishlist" : "/login")}><Heart size={19} /><span>{wishlist.length}</span></button>
+          <button aria-label="Wishlist" onClick={() => navigate(isCustomerAuthed ? "/account/wishlist" : loginPath("/account/wishlist"))}><Heart size={19} /><span>{wishlist.length}</span></button>
           <button aria-label="Cart" onClick={() => navigate("/cart")}><ShoppingBag size={19} /><span>{cartCount}</span></button>
-          <button aria-label="Account" onClick={() => navigate(isCustomerAuthed ? "/account" : "/login")}><User size={19} /></button>
+          <button aria-label="Account" onClick={() => navigate(isCustomerAuthed ? "/account" : loginPath("/account"))}><User size={19} /></button>
           <button className="menu" aria-label="Menu" onClick={() => setOpen(!open)}><Menu size={21} /></button>
         </div>
       </header>
@@ -116,6 +146,7 @@ function StoreFooter({ categories }: { categories: string[] }) {
       </div>
       <nav>
         {categories.map((category) => <button key={category} onClick={() => navigate(shopPath(category))}>{category}</button>)}
+        <button onClick={() => navigate("/track")}>Track Order</button>
       </nav>
       <p>Handmade bags, pouches, keychains, and thoughtful everyday pieces.</p>
     </footer>
@@ -444,7 +475,7 @@ export function CheckoutPage(props: CartProps) {
     }
     if (step === "address") {
       const form = new FormData(event.currentTarget);
-      setAddress({
+      const nextAddress = {
         full_name: customer.full_name,
         phone: customer.phone,
         email: customer.email,
@@ -456,7 +487,9 @@ export function CheckoutPage(props: CartProps) {
         pincode: String(form.get("pincode") || "").trim(),
         country: String(form.get("country") || "India").trim(),
         delivery_instructions: String(form.get("delivery_instructions") || "").trim(),
-      });
+      };
+      setAddress(nextAddress);
+      if (form.get("save_address")) saveCheckoutAddress(nextAddress);
       setStep("delivery");
       trackCheckout("address_completed", { stage: "delivery" });
       return;
@@ -587,7 +620,7 @@ function CustomerDetailsStep({ mode, customer, onLogin, onCreateCustomer, setCus
 }
 
 function AddressStep({ address }: { address: AddressPayload | null }) {
-  return <><h1>Delivery Address</h1><p>Where should we deliver your handcrafted piece?</p><div className="form-grid"><LineInput name="address" label="Address Line 1 *" defaultValue={address?.address} required wide /><LineInput name="address_line2" label="Address Line 2" defaultValue={address?.address_line2} wide /><LineInput name="landmark" label="Landmark" defaultValue={address?.landmark} /><LineInput name="pincode" label="Pincode *" defaultValue={address?.pincode} required /><LineInput name="city" label="City *" defaultValue={address?.city} required /><LineInput name="state" label="State *" defaultValue={address?.state} required /><LineInput name="country" label="Country *" defaultValue={address?.country || "India"} required /><LineInput name="delivery_instructions" label="Delivery Instructions" defaultValue={address?.delivery_instructions} wide /></div><label className="checkbox"><input type="checkbox" /> Save this address for faster checkout next time</label></>;
+  return <><h1>Delivery Address</h1><p>Where should we deliver your handcrafted piece?</p><div className="form-grid"><LineInput name="address" label="Address Line 1 *" defaultValue={address?.address} required wide /><LineInput name="address_line2" label="Address Line 2" defaultValue={address?.address_line2} wide /><LineInput name="landmark" label="Landmark" defaultValue={address?.landmark} /><LineInput name="pincode" label="Pincode *" defaultValue={address?.pincode} required /><LineInput name="city" label="City *" defaultValue={address?.city} required /><LineInput name="state" label="State *" defaultValue={address?.state} required /><LineInput name="country" label="Country *" defaultValue={address?.country || "India"} required /><LineInput name="delivery_instructions" label="Delivery Instructions" defaultValue={address?.delivery_instructions} wide /></div><label className="checkbox"><input name="save_address" type="checkbox" defaultChecked /> Save this address for faster checkout next time</label></>;
 }
 
 function LineInput({ name, label, wide, required, defaultValue }: { name: string; label: string; wide?: boolean; required?: boolean; defaultValue?: string }) {
@@ -649,6 +682,101 @@ export function OrderConfirmationPage({ order, cartCount, wishlist, isCustomerAu
         ) : (
           <Empty title="No recent order found" text="Your bag is ready whenever you are." action="Shop Collection" onAction={() => navigate("/shop")} />
         )}
+      </main>
+      <StoreFooter categories={categories} />
+    </div>
+  );
+}
+
+export function TrackOrderPage({ cartCount, wishlist, isCustomerAuthed, categories }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories">) {
+  const params = new URLSearchParams(window.location.search);
+  const [orderId, setOrderId] = useState(params.get("order") || "");
+  const [identifier, setIdentifier] = useState("");
+  const [token] = useState(params.get("token") || "");
+  const [order, setOrder] = useState<OrderRow | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const track = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!orderId.trim()) {
+      setError("Enter your order number.");
+      return;
+    }
+    if (!token && !identifier.trim()) {
+      setError("Enter the phone number or email used for this order.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const value = identifier.trim();
+      const tracked = await apiRequest<OrderRow>("/orders/track", {
+        method: "POST",
+        body: JSON.stringify({
+          order_id: orderId.trim().toUpperCase(),
+          tracking_token: token || undefined,
+          email: value.includes("@") ? value : undefined,
+          phone: value && !value.includes("@") ? value : undefined,
+        }),
+      });
+      setOrder(tracked);
+    } catch (exc) {
+      setOrder(null);
+      setError(exc instanceof Error ? exc.message : "We could not verify this order. Check the details and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (orderId && token) void track();
+  }, []);
+
+  const lines = order?.line_items?.length ? order.line_items : [];
+  return (
+    <div>
+      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} />
+      <main className="checkout-page track-page">
+        <section className="checkout-panel track-panel">
+          <p className="eyebrow">Order Tracking</p>
+          <h1>Track Your Order</h1>
+          <p>Use your order number with the phone number or email used at checkout. Tracking links from email open automatically.</p>
+          <form className="track-form" onSubmit={track}>
+            <label className="line-input"><input value={orderId} onChange={(event) => setOrderId(event.target.value)} placeholder=" " required /><span>Order Number *</span></label>
+            {!token && <label className="line-input"><input value={identifier} onChange={(event) => setIdentifier(event.target.value)} placeholder=" " required /><span>Email or Mobile Number *</span></label>}
+            <button className="primary-button full" disabled={loading}>{loading ? "Checking..." : "Track Order"}</button>
+          </form>
+          {error && <p className="form-error">{error}</p>}
+          {order && (
+            <div className="tracked-order">
+              <div className="tracked-order-head">
+                <div><span className="eyebrow">Order {order.id}</span><h2>{order.status}</h2></div>
+                <strong>{money(order.total)}</strong>
+              </div>
+              <div className="review-totals">
+                <div><span>Customer</span><b>{order.customer}</b></div>
+                <div><span>Payment</span><b>{order.payment_method || "Not recorded"}</b></div>
+                <div><span>Estimated Delivery</span><b>{order.estimated_delivery_date || "3-5 business days"}</b></div>
+                <strong><span>Total</span><b>{money(order.total)}</b></strong>
+              </div>
+              <div className="review-list">
+                {lines.length ? lines.map((item) => (
+                  <article key={item.slug}>
+                    <img src={item.image} alt={item.name} />
+                    <div><strong>{item.name}</strong><span>{item.variant}</span><small>Qty {item.qty} x {money(item.unit_price)}</small></div>
+                    <b>{money(item.line_total)}</b>
+                  </article>
+                )) : <article><div><strong>{order.product}</strong><span>Order item</span></div><b>{money(order.total)}</b></article>}
+              </div>
+              {order.address && <div className="review-card"><strong>Delivery Address</strong><p>{order.address.full_name}<br />{order.address.address}{order.address.address_line2 ? `, ${order.address.address_line2}` : ""}<br />{order.address.city}, {order.address.state} {order.address.pincode}</p></div>}
+              <div className="button-row">
+                <button className="secondary-button" onClick={() => window.print()}>Print Details</button>
+                <button className="primary-button" onClick={() => navigate("/shop")}>Continue Shopping</button>
+              </div>
+            </div>
+          )}
+        </section>
       </main>
       <StoreFooter categories={categories} />
     </div>

@@ -1,5 +1,6 @@
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from pymongo.errors import OperationFailure
 
 from .config import settings
 
@@ -26,7 +27,16 @@ async def connect() -> None:
     await db.customers.create_index("email")
     await db.customers.create_index("name")
     await db.customer_accounts.create_index("email", unique=True)
-    await db.customer_accounts.create_index("phone", unique=True)
+    customer_account_indexes = await db.customer_accounts.index_information()
+    phone_index = customer_account_indexes.get("phone_1")
+    if phone_index and phone_index.get("unique") and not phone_index.get("sparse"):
+        try:
+            await db.customer_accounts.drop_index("phone_1")
+        except OperationFailure:
+            pass
+    await db.customer_accounts.create_index("phone", unique=True, sparse=True)
+    await db.customer_accounts.create_index("google_sub", unique=True, sparse=True)
+    await db.customer_accounts.create_index("reset_token_hash", sparse=True)
     await db.categories.create_index("slug", unique=True)
     await db.categories.create_index([("display_order", 1), ("name", 1)])
 

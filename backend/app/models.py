@@ -234,6 +234,19 @@ class CustomerLogin(BaseModel):
     password: str = Field(min_length=6)
 
 
+class CustomerGoogleLogin(BaseModel):
+    credential: str = Field(min_length=20)
+
+
+class CustomerPasswordResetRequest(BaseModel):
+    identifier: str = Field(min_length=3)
+
+
+class CustomerPasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=20)
+    password: str = Field(min_length=6)
+
+
 class CustomerSession(BaseModel):
     name: str
     email: str

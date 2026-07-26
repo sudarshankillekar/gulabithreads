@@ -23,7 +23,7 @@ import razorpay
 
 from .config import settings
 from .database import close, connect, get_db
-from .models import AdminLogin, AdminSession, AdminSetup, CartItem, Category, CategoryCreate, CategoryOut, CategoryUpdate, CheckoutPriceOut, CheckoutPriceRequest, CustomerLogin, CustomerOut, CustomerRegister, CustomerSession, Order, OrderCreate, OrderLineItem, OrderStatus, OrderTrackRequest, OtpRequest, OtpVerifyRequest, PricedCart, Product, RazorpayOrderCreate, RazorpayOrderOut, RazorpayVerifyPayment
+from .models import AdminLogin, AdminSession, AdminSetup, CartItem, Category, CategoryCreate, CategoryOut, CategoryUpdate, CheckoutPriceOut, CheckoutPriceRequest, CustomerGoogleLogin, CustomerLogin, CustomerOut, CustomerPasswordResetConfirm, CustomerPasswordResetRequest, CustomerRegister, CustomerSession, Order, OrderCreate, OrderLineItem, OrderStatus, OrderTrackRequest, OtpRequest, OtpVerifyRequest, PricedCart, Product, RazorpayOrderCreate, RazorpayOrderOut, RazorpayVerifyPayment
 from .seed import seed_database
 
 
@@ -408,6 +408,61 @@ async def send_order_confirmation(order: Order) -> list[dict]:
     return results
 
 
+def customer_session_from_document(customer: dict) -> dict:
+    return CustomerSession(
+        name=customer.get("name") or "Gulabi Member",
+        email=customer["email"],
+        phone=customer.get("phone"),
+        provider=customer.get("provider", "email"),
+        token=create_token("customer", customer["email"]),
+    ).model_dump()
+
+
+def reset_token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+async def send_password_reset_email(customer: dict, token: str) -> dict:
+    to_email = customer.get("email")
+    from_email = settings.smtp_from_email or settings.smtp_username
+    if not to_email:
+        return {"channel": "email", "status": "skipped", "reason": "No email on customer account"}
+    if not settings.smtp_host or not from_email:
+        return {"channel": "email", "status": "skipped", "reason": "SMTP is not configured"}
+    reset_url = f"{settings.frontend_origin}/reset-password?token={token}"
+    body = (
+        f"Hi {customer.get('name', 'Gulabi Member')},\n\n"
+        "We received a request to reset your Gulabi Threads password.\n\n"
+        f"Reset your password here: {reset_url}\n\n"
+        "This link expires in 30 minutes. If you did not request this, you can ignore this email.\n\n"
+        "Crafted with love,\n"
+        "Gulabi Threads"
+    )
+    try:
+        await asyncio.to_thread(send_email_sync, to_email, "Reset your Gulabi Threads password", body)
+        return {"channel": "email", "status": "sent", "to": to_email}
+    except Exception as exc:
+        return {"channel": "email", "status": "failed", "to": to_email, "reason": str(exc)}
+
+
+async def verify_google_credential(credential: str) -> dict:
+    if not settings.google_client_id:
+        raise HTTPException(status_code=503, detail="Google sign-in is not configured yet")
+    async with httpx.AsyncClient(timeout=12) as client:
+        response = await client.get("https://oauth2.googleapis.com/tokeninfo", params={"id_token": credential})
+    if response.status_code >= 400:
+        raise HTTPException(status_code=401, detail="Google sign-in could not be verified")
+    payload = response.json()
+    if payload.get("aud") != settings.google_client_id:
+        raise HTTPException(status_code=401, detail="Google sign-in is not allowed for this app")
+    if str(payload.get("email_verified", "")).lower() not in ("true", "1"):
+        raise HTTPException(status_code=401, detail="Google email is not verified")
+    email = str(payload.get("email", "")).strip().lower()
+    if not email:
+        raise HTTPException(status_code=401, detail="Google did not return an email address")
+    return payload
+
+
 def estimated_delivery_label() -> str:
     return (datetime.utcnow() + timedelta(days=5)).strftime("%b %d")
 
@@ -584,9 +639,29 @@ async def register_customer(payload: CustomerRegister) -> dict:
     email = payload.email.lower()
     enforce_rate_limit(f"customer-register:{email}", limit=8, window_seconds=300)
     db = get_db()
-    if await db.customer_accounts.find_one({"$or": [{"email": email}, {"phone": payload.phone}]}):
-        raise HTTPException(status_code=409, detail="An account already exists with this email or phone")
+    existing = await db.customer_accounts.find_one({"email": email})
+    phone_owner = await db.customer_accounts.find_one({"phone": payload.phone, "email": {"$ne": email}})
+    if phone_owner:
+        raise HTTPException(status_code=409, detail="An account already exists with this phone number")
     salt, password_hash = hash_password(payload.password)
+    if existing:
+        if existing.get("password_hash"):
+            raise HTTPException(status_code=409, detail="An account already exists with this email. Please sign in instead.")
+        await db.customer_accounts.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "name": payload.name,
+                    "phone": payload.phone,
+                    "password_salt": salt,
+                    "password_hash": password_hash,
+                    "provider": existing.get("provider", "google"),
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
+        customer = await db.customer_accounts.find_one({"email": email})
+        return customer_session_from_document(customer)
     customer = {
         "name": payload.name,
         "email": email,
@@ -597,7 +672,7 @@ async def register_customer(payload: CustomerRegister) -> dict:
         "created_at": datetime.utcnow(),
     }
     await db.customer_accounts.insert_one(customer)
-    return CustomerSession(name=customer["name"], email=customer["email"], phone=customer["phone"], token=create_token("customer", customer["email"])).model_dump()
+    return customer_session_from_document(customer)
 
 
 @app.post("/api/customer/auth/login", response_model=CustomerSession)
@@ -605,9 +680,107 @@ async def login_customer(payload: CustomerLogin) -> dict:
     identifier = payload.identifier.lower().strip()
     enforce_rate_limit(f"customer-login:{identifier}", limit=8, window_seconds=300)
     customer = await get_db().customer_accounts.find_one({"$or": [{"email": identifier}, {"phone": payload.identifier.strip()}]})
-    if customer is None or not verify_password(payload.password, customer["password_salt"], customer["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid customer login")
-    return CustomerSession(name=customer["name"], email=customer["email"], phone=customer.get("phone"), token=create_token("customer", customer["email"])).model_dump()
+    if customer is None:
+        raise HTTPException(status_code=401, detail="We could not find an account with those details.")
+    if not customer.get("password_hash") or not customer.get("password_salt"):
+        raise HTTPException(status_code=401, detail="This account uses Google sign-in. Continue with Google or reset your password.")
+    if not verify_password(payload.password, customer["password_salt"], customer["password_hash"]):
+        raise HTTPException(status_code=401, detail="Incorrect password. Please try again or reset your password.")
+    return customer_session_from_document(customer)
+
+
+@app.post("/api/customer/auth/google", response_model=CustomerSession)
+async def login_customer_google(payload: CustomerGoogleLogin) -> dict:
+    enforce_rate_limit("customer-google-login", limit=30, window_seconds=300)
+    google = await verify_google_credential(payload.credential)
+    email = str(google["email"]).lower()
+    db = get_db()
+    customer = await db.customer_accounts.find_one({"email": email})
+    now = datetime.utcnow()
+    if customer:
+        await db.customer_accounts.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "google_sub": google.get("sub"),
+                    "provider": "google" if not customer.get("password_hash") else customer.get("provider", "email"),
+                    "last_login_at": now,
+                    "updated_at": now,
+                }
+            },
+        )
+        customer = await db.customer_accounts.find_one({"email": email})
+        return customer_session_from_document(customer)
+    customer = {
+        "name": google.get("name") or email.split("@")[0],
+        "email": email,
+        "phone": None,
+        "provider": "google",
+        "google_sub": google.get("sub"),
+        "created_at": now,
+        "last_login_at": now,
+    }
+    await db.customer_accounts.insert_one(customer)
+    return customer_session_from_document(customer)
+
+
+@app.post("/api/customer/auth/forgot-password")
+async def forgot_customer_password(payload: CustomerPasswordResetRequest) -> dict:
+    identifier = payload.identifier.lower().strip()
+    enforce_rate_limit(f"customer-password-reset:{identifier}", limit=5, window_seconds=300)
+    db = get_db()
+    customer = await db.customer_accounts.find_one({"$or": [{"email": identifier}, {"phone": payload.identifier.strip()}]})
+    if customer and customer.get("email"):
+        token = secrets.token_urlsafe(32)
+        await db.customer_accounts.update_one(
+            {"email": customer["email"]},
+            {
+                "$set": {
+                    "reset_token_hash": reset_token_hash(token),
+                    "reset_token_expires_at": datetime.utcnow() + timedelta(minutes=30),
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+        )
+        result = await send_password_reset_email(customer, token)
+        await db.order_notifications.insert_one(
+            {
+                "type": "password-reset",
+                "customer_email": customer.get("email"),
+                "results": [result],
+                "created_at": datetime.utcnow(),
+            }
+        )
+    return {"message": "If an account exists with these details, a password reset link has been sent."}
+
+
+@app.post("/api/customer/auth/reset-password", response_model=CustomerSession)
+async def reset_customer_password(payload: CustomerPasswordResetConfirm) -> dict:
+    enforce_rate_limit(f"customer-password-reset-confirm:{payload.token[:12]}", limit=8, window_seconds=300)
+    db = get_db()
+    customer = await db.customer_accounts.find_one(
+        {
+            "reset_token_hash": reset_token_hash(payload.token),
+            "reset_token_expires_at": {"$gt": datetime.utcnow()},
+        }
+    )
+    if customer is None:
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired.")
+    salt, password_hash = hash_password(payload.password)
+    await db.customer_accounts.update_one(
+        {"email": customer["email"]},
+        {
+            "$set": {
+                "password_salt": salt,
+                "password_hash": password_hash,
+                "provider": customer.get("provider", "email"),
+                "updated_at": datetime.utcnow(),
+            },
+            "$unset": {"reset_token_hash": "", "reset_token_expires_at": ""},
+        },
+    )
+    updated = await db.customer_accounts.find_one({"email": customer["email"]})
+    return customer_session_from_document(updated)
 
 
 @app.get("/api/categories", response_model=list[CategoryOut])

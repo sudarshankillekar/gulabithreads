@@ -49,6 +49,11 @@ export type OrderRow = {
   shipping_method?: string;
   address?: AddressPayload | null;
   payment_method?: string | null;
+  line_items?: CheckoutLineItem[];
+  discount?: number;
+  coupon_code?: string;
+  estimated_delivery_date?: string | null;
+  tracking_token?: string | null;
 };
 export type AuthSession = { name: string; email: string; phone?: string; provider?: "email" | "google"; token?: string };
 export type CustomerAccount = AuthSession & { password?: string; createdAt: string };
@@ -120,6 +125,6 @@ export type CartProps = StoreProps & {
   updateQty: (slug: string, qty: number) => void;
   customerSession?: AuthSession | null;
   customerAccounts?: CustomerAccount[];
-  onCustomerLogin?: (session: AuthSession, password?: string) => void | Promise<void>;
+  onCustomerLogin?: (session: AuthSession, password?: string, remember?: boolean) => void | Promise<void>;
   onCreateCustomer?: (account: CustomerAccount) => void | Promise<void>;
 };

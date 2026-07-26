@@ -1,8 +1,14 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+function resolveApiBase() {
+  const configured = String(import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
+  if (/^https?:\/\//.test(configured) && !configured.endsWith("/api")) return `${configured}/api`;
+  return configured || "/api";
+}
+
+const API_BASE = resolveApiBase();
 
 function storedToken(key: string) {
   try {
-    const session = JSON.parse(localStorage.getItem(key) || "null") as { token?: string } | null;
+    const session = JSON.parse(localStorage.getItem(key) || sessionStorage.getItem(key) || "null") as { token?: string } | null;
     return session?.token || "";
   } catch {
     return "";
@@ -19,7 +25,8 @@ function authTokenFor(path: string) {
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const isFormData = init?.body instanceof FormData;
   const token = authTokenFor(path);
-  const response = await fetch(`${API_BASE}${path}`, {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const response = await fetch(`${API_BASE}${normalizedPath}`, {
     headers: { ...(isFormData ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers },
     ...init,
   });

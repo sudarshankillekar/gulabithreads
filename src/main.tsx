@@ -14,7 +14,9 @@ import "./styles.css";
 type AdminSection = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers";
 
 function customerNextPath(fallback = "/") {
-  const next = new URLSearchParams(window.location.search).get("next") || fallback;
+  const currentPath = window.location.pathname;
+  const guardedFallback = currentPath.startsWith("/account") ? `${currentPath}${window.location.search}` : fallback;
+  const next = new URLSearchParams(window.location.search).get("next") || guardedFallback;
   if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/admin")) return fallback;
   return next;
 }

@@ -11,3 +11,4 @@ vite.config.d.ts
 backend/.mongo/
 __pycache__/
 *.pyc
+.vercel

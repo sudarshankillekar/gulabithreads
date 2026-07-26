@@ -198,6 +198,18 @@ function App() {
     setToast("Admin password created");
     navigate("/admin");
   };
+  const logoutCustomer = () => {
+    setCustomerSession(null);
+    setCustomerOrderIds([]);
+    setToast("Logged out");
+    navigate("/");
+  };
+  const logoutAdmin = () => {
+    setAdminSession(null);
+    setCustomers([]);
+    setToast("Logged out");
+    navigate("/admin/login");
+  };
 
   const categoryNames = categoryRows.length ? categoryRows.filter((category) => category.active && !category.archived).map((category) => category.name) : [...fallbackCategories];
   const storeProps = { cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, isCustomerAuthed };
@@ -223,20 +235,20 @@ function App() {
     ) : routePath === "/login" ? (
       customerSession ? <HomePage {...storeProps} /> : <LoginPage mode="customer" onLogin={loginCustomer} customerAccounts={customerAccounts} onCreateCustomer={createCustomerAccount} />
     ) : routePath.startsWith("/account") ? (
-      customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section={accountSection} products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} /> : <LoginPage mode="customer" onLogin={loginCustomer} customerAccounts={customerAccounts} onCreateCustomer={createCustomerAccount} />
+      customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section={accountSection} products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} onLogout={logoutCustomer} /> : <LoginPage mode="customer" onLogin={loginCustomer} customerAccounts={customerAccounts} onCreateCustomer={createCustomerAccount} />
     ) : routePath === "/logout" ? (
       <LogoutPage onLogout={() => {
         setCustomerSession(null);
         setCustomerOrderIds([]);
       }} />
     ) : routePath === "/admin/login" ? (
-      adminSession ? <DashboardPage role="admin" section="dashboard" products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} adminName={adminSession.name} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
+      adminSession ? <DashboardPage role="admin" section="dashboard" products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} adminName={adminSession.name} onLogout={logoutAdmin} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
     ) : routePath === "/admin/logout" ? (
       <AdminLogoutPage onLogout={() => setAdminSession(null)} />
     ) : routePath.startsWith("/seller") ? (
-      adminSession ? <DashboardPage role="seller" section={adminSection} products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
+      adminSession ? <DashboardPage role="seller" section={adminSection} products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} onLogout={logoutAdmin} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
     ) : routePath.startsWith("/admin") ? (
-      adminSession ? <DashboardPage role="admin" section={adminSection} products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} adminName={adminSession.name} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
+      adminSession ? <DashboardPage role="admin" section={adminSection} products={catalog} orders={orderRows} customers={customers} categories={categoryRows} onOrderStatusUpdate={updateOrderStatus} onProductCreate={createProduct} onProductUpdate={updateProduct} onProductDelete={deleteProduct} adminName={adminSession.name} onLogout={logoutAdmin} /> : <LoginPage mode="admin" onLogin={loginAdmin} adminConfigured={adminConfigured} onCreateAdmin={createAdminPassword} />
     ) : (
       <NotFound />
     );

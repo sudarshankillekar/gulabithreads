@@ -29,7 +29,7 @@ type SavedPaymentMethod = {
   detail: string;
 };
 
-export function AccountPage({ orders, customerName, customerPhone, customerEmail, customerOrderIds, section, products, wishlist, addCart, toggleWish }: { orders: OrderRow[]; customerName: string; customerPhone?: string; customerEmail?: string; customerOrderIds: string[]; section: AccountSection; products: Product[]; wishlist: string[]; addCart: (slug: string) => void; toggleWish: (slug: string) => void }) {
+export function AccountPage({ orders, customerName, customerPhone, customerEmail, customerOrderIds, section, products, wishlist, addCart, toggleWish, onLogout }: { orders: OrderRow[]; customerName: string; customerPhone?: string; customerEmail?: string; customerOrderIds: string[]; section: AccountSection; products: Product[]; wishlist: string[]; addCart: (slug: string) => void; toggleWish: (slug: string) => void; onLogout: () => void }) {
   const wishlistProducts = wishlist.map((slug) => products.find((product) => product.slug === slug)).filter((product): product is Product => Boolean(product));
   const normalizedCustomer = customerName.trim().toLowerCase();
   const normalizedPhone = customerPhone?.replace(/\D/g, "");
@@ -42,7 +42,7 @@ export function AccountPage({ orders, customerName, customerPhone, customerEmail
     return customerOrderIds.includes(order.id) || orderCustomer === normalizedCustomer || deliveryName === normalizedCustomer || (Boolean(normalizedPhone) && deliveryPhone === normalizedPhone) || (Boolean(normalizedEmail) && orderEmail === normalizedEmail);
   });
   return (
-    <DashboardShell role="customer" section={section} displayName={customerName}>
+    <DashboardShell role="customer" section={section} displayName={customerName} onLogout={onLogout}>
       {section === "orders" && <CustomerOrders orders={customerOrders} customerName={customerName} wishlistCount={wishlistProducts.length} products={products} />}
       {section === "wishlist" && <CustomerWishlist products={wishlistProducts} addCart={addCart} toggleWish={toggleWish} />}
       {section === "addresses" && <CustomerAddresses />}
@@ -255,10 +255,10 @@ function CustomerProfile({ customerName }: { customerName: string }) {
 
 type AdminSection = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers";
 
-export function DashboardPage({ role, section, products, orders, customers, categories, onOrderStatusUpdate, onProductCreate, onProductUpdate, onProductDelete, adminName }: { role: "seller" | "admin"; section: AdminSection; products: Product[]; orders: OrderRow[]; customers: CustomerRecord[]; categories: CategoryRecord[]; onOrderStatusUpdate: (orderId: string, status: OrderStatus) => Promise<OrderRow>; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void>; adminName?: string }) {
+export function DashboardPage({ role, section, products, orders, customers, categories, onOrderStatusUpdate, onProductCreate, onProductUpdate, onProductDelete, adminName, onLogout }: { role: "seller" | "admin"; section: AdminSection; products: Product[]; orders: OrderRow[]; customers: CustomerRecord[]; categories: CategoryRecord[]; onOrderStatusUpdate: (orderId: string, status: OrderStatus) => Promise<OrderRow>; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void>; adminName?: string; onLogout?: () => void }) {
   const categoryNames = categories.length ? categories.filter((category) => category.active && !category.archived).map((category) => category.name) : [...fallbackCategories];
   return (
-    <DashboardShell role={role} section={section} displayName={adminName}>
+    <DashboardShell role={role} section={section} displayName={adminName} onLogout={onLogout}>
       {section === "dashboard" && <><section className="welcome"><h1>{role === "admin" ? "Admin Overview" : "Seller Portal"}</h1><p>{role === "admin" ? "Monitor catalog health, approvals, and boutique order flow." : "Manage your catalog, monitor inventory health, and curate your boutique."}</p></section><div className="metric-grid"><Metric icon={<ShoppingBag />} label="Revenue" value="₹42.8k" /><Metric icon={<Package />} label="Active Listings" value={String(products.length)} /><Metric icon={<Bell />} label="Pending Review" value="2" /><Metric icon={<BarChart3 />} label="Conversion" value="6.8%" /></div><OrdersTable orders={orders} compact /></>}
       {section === "products" && <ProductsManager products={products} categories={categoryNames} admin={role === "admin"} onProductCreate={onProductCreate} onProductUpdate={onProductUpdate} onProductDelete={onProductDelete} />}
       {section === "categories" && <CategoriesManager initialCategories={categories} />}
@@ -269,7 +269,7 @@ export function DashboardPage({ role, section, products, orders, customers, cate
   );
 }
 
-function DashboardShell({ role, section, children, displayName }: { role: "customer" | "seller" | "admin"; section: string; children: React.ReactNode; displayName?: string }) {
+function DashboardShell({ role, section, children, displayName, onLogout }: { role: "customer" | "seller" | "admin"; section: string; children: React.ReactNode; displayName?: string; onLogout?: () => void }) {
   const [open, setOpen] = useState(false);
   const base = role === "customer" ? "/account" : `/${role}`;
   const customerNav = [["Orders", `${base}/orders`, ShoppingBag], ["Wishlist", `${base}/wishlist`, Heart], ["Addresses", `${base}/addresses`, Home], ["Profile", `${base}/profile`, User]];
@@ -293,8 +293,8 @@ function DashboardShell({ role, section, children, displayName }: { role: "custo
         </nav>
         <div className="dash-side-actions">
           <a className="primary-button full" href="/">{role === "customer" ? "Shop Collection" : "View Boutique"}</a>
-          {role === "customer" && <a className="logout-button" href="/logout"><LogOut size={17} /> Logout</a>}
-          {role === "admin" && <a className="logout-button" href="/admin/logout"><LogOut size={17} /> Logout</a>}
+          {role === "customer" && <button type="button" className="logout-button" onClick={onLogout}><LogOut size={17} /> Logout</button>}
+          {role === "admin" && <button type="button" className="logout-button" onClick={onLogout}><LogOut size={17} /> Logout</button>}
         </div>
       </aside>
       <header className="dash-top"><button onClick={() => setOpen(!open)}><Menu /></button><label><Search size={17} /><input placeholder="Search orders, SKUs, or customers..." /></label><button><Bell /></button></header>

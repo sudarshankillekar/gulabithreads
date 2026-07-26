@@ -237,7 +237,7 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .nav-group { display: grid; gap: 5px; margin-bottom: 12px; }
 .nav-group > span { padding: 8px 14px 2px; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 9px; font-weight: 700; }
 .dash-side-actions { display: grid; gap: 10px; }
-.logout-button { min-height: 46px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid rgba(130,116,115,.28); color: var(--muted); border-radius: 4px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; transition: .2s ease; text-decoration: none; }
+.logout-button { min-height: 46px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid rgba(130,116,115,.28); background: transparent; color: var(--muted); border-radius: 4px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; transition: .2s ease; text-decoration: none; cursor: pointer; }
 .logout-button:hover { color: var(--danger); border-color: rgba(186,26,26,.3); background: var(--surface-top); }
 .dash-top { position: sticky; top: 0; margin-left: 264px; height: 72px; padding: 0 clamp(20px, 4vw, 64px); display: flex; align-items: center; gap: 20px; background: rgba(252,249,248,.86); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(212,194,194,.2); z-index: 20; }
 .dash-top > button:first-child { display: none; }

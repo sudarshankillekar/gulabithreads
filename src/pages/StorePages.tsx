@@ -4,9 +4,11 @@ import {
   CreditCard,
   Filter,
   Heart,
+  Instagram,
   Menu,
   Minus,
   Package,
+  Phone,
   Plus,
   Search,
   ShieldCheck,
@@ -23,6 +25,10 @@ import { money } from "../lib/format";
 import { navigate } from "../lib/navigation";
 import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
+
+const CONTACT_PHONE = "7349583334";
+const INSTAGRAM_URL = "https://www.instagram.com/gulabi.threads_?utm_source=ig_web_button_share_sheet";
+const REFUND_POLICY = "Refunds or returns are accepted only for damaged or defective products reported and returned within 5 days of delivery.";
 
 type RazorpayOrderResponse = {
   order_id: string;
@@ -123,6 +129,7 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
       <header className="store-nav">
         <button className="brand brand-mark" onClick={() => navigate("/")}><span>Gulabi Threads</span><small>Crafted with love</small></button>
         <nav className={open ? "nav-links open" : "nav-links"}>
+          <span className="nav-drawer-title">Categories</span>
           {categories.map((label) => <button key={label} onClick={() => { setOpen(false); navigate(shopPath(label)); }}>{label}</button>)}
         </nav>
         <div className="nav-actions">
@@ -130,9 +137,10 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
           <button aria-label="Wishlist" onClick={() => navigate(isCustomerAuthed ? "/account/wishlist" : loginPath("/account/wishlist"))}><Heart size={19} /><span>{wishlist.length}</span></button>
           <button aria-label="Cart" onClick={() => navigate("/cart")}><ShoppingBag size={19} /><span>{cartCount}</span></button>
           <button aria-label="Account" onClick={() => navigate(isCustomerAuthed ? "/account" : loginPath("/account"))}><User size={19} /></button>
-          <button className="menu" aria-label="Menu" onClick={() => setOpen(!open)}><Menu size={21} /></button>
+          <button className="menu" aria-label="Categories menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
       </header>
+      <button className={open ? "nav-scrim open" : "nav-scrim"} aria-label="Close categories menu" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)} />
     </>
   );
 }
@@ -148,7 +156,12 @@ function StoreFooter({ categories }: { categories: string[] }) {
         {categories.map((category) => <button key={category} onClick={() => navigate(shopPath(category))}>{category}</button>)}
         <button onClick={() => navigate("/track")}>Track Order</button>
       </nav>
-      <p>Handmade bags, pouches, keychains, and thoughtful everyday pieces.</p>
+      <div className="footer-contact">
+        <p>Handmade bags, pouches, keychains, and thoughtful everyday pieces.</p>
+        <p className="footer-policy">{REFUND_POLICY}</p>
+        <a href={`tel:+91${CONTACT_PHONE}`}><Phone size={15} /> +91 {CONTACT_PHONE}</a>
+        <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"><Instagram size={15} /> Instagram</a>
+      </div>
     </footer>
   );
 }
@@ -265,7 +278,7 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
             <button className="secondary-button full" onClick={() => toggleWish(product.slug)}>{wishlist.includes(product.slug) ? "Saved To Wishlist" : "Add To Wishlist"}</button>
             <details open><summary>Description</summary><p>{product.description}</p></details>
             <details><summary>Specifications</summary><p>14&quot;W x 11&quot;H x 6&quot;D. Magnetic snap closure, rose gold hardware, two slip pockets.</p></details>
-            <details><summary>Shipping & Returns</summary><p>Complimentary standard shipping. Returns accepted within 30 days in original packaging.</p></details>
+            <details><summary>Shipping & Returns</summary><p>Complimentary standard shipping on eligible orders. {REFUND_POLICY} Contact +91 {CONTACT_PHONE} for support.</p></details>
           </aside>
         </section>
       </main>

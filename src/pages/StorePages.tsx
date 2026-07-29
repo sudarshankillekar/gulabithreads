@@ -127,6 +127,7 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
     <>
       <div className="shipping-bar">Free shipping on orders above ₹1499 <Truck size={16} /></div>
       <header className="store-nav">
+        <button className="menu" aria-label={open ? "Close categories menu" : "Open categories menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
         <button className="brand brand-mark" onClick={() => navigate("/")}><span>Gulabi Threads</span><small>Crafted with love</small></button>
         <nav className={open ? "nav-links open" : "nav-links"}>
           <span className="nav-drawer-title">Categories</span>
@@ -137,7 +138,6 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
           <button aria-label="Wishlist" onClick={() => navigate(isCustomerAuthed ? "/account/wishlist" : loginPath("/account/wishlist"))}><Heart size={19} /><span>{wishlist.length}</span></button>
           <button aria-label="Cart" onClick={() => navigate("/cart")}><ShoppingBag size={19} /><span>{cartCount}</span></button>
           <button aria-label="Account" onClick={() => navigate(isCustomerAuthed ? "/account" : loginPath("/account"))}><User size={19} /></button>
-          <button className="menu" aria-label="Categories menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
       </header>
       <button className={open ? "nav-scrim open" : "nav-scrim"} aria-label="Close categories menu" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)} />

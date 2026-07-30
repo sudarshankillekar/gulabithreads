@@ -258,7 +258,14 @@ export function ShopPage(props: StoreProps) {
 }
 
 export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish, isCustomerAuthed, categories }: { product: Product } & StoreProps) {
-  const [image, setImage] = useState(product.gallery[0]);
+  const galleryImages = Array.from(new Set([product.image, ...(product.gallery || [])].filter(Boolean)));
+  const galleryKey = galleryImages.join("|");
+  const [image, setImage] = useState(galleryImages[0] || product.image);
+
+  useEffect(() => {
+    setImage(galleryImages[0] || product.image);
+  }, [product.slug, product.image, galleryKey]);
+
   return (
     <div>
       <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} />
@@ -267,13 +274,12 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
         <section className="detail-grid">
           <div className="gallery">
             <img src={image} alt={product.name} />
-            <div>{product.gallery.map((src) => <button className={image === src ? "active" : ""} key={src} onClick={() => setImage(src)}><img src={src} alt="" /></button>)}</div>
+            {galleryImages.length > 1 && <div>{galleryImages.map((src) => <button className={image === src ? "active" : ""} key={src} onClick={() => setImage(src)}><img src={src} alt="" /></button>)}</div>}
           </div>
           <aside className="buy-panel">
             <h1>{product.name}</h1>
             <p className="price">{money(product.price)}</p>
             <div className="stars">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={16} fill={i < product.rating ? "currentColor" : "none"} />)}<span>{product.stock} in stock</span></div>
-            <div className="swatches"><span>Color: {product.color}</span><button className="swatch blush" /><button className="swatch ivory" /><button className="swatch black" /></div>
             <button className="primary-button full" disabled={product.stock <= 0} onClick={() => addCart(product.slug)}>{product.stock > 0 ? "Add To Bag" : "Out Of Stock"}</button>
             <button className="secondary-button full" onClick={() => toggleWish(product.slug)}>{wishlist.includes(product.slug) ? "Saved To Wishlist" : "Add To Wishlist"}</button>
             <details open><summary>Description</summary><p>{product.description}</p></details>

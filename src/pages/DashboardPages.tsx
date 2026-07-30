@@ -307,6 +307,14 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
   return <article className="metric"><span>{icon}</span><p>{label}</p><strong>{value}</strong></article>;
 }
 
+function uniqueImageUrls(urls: string[]) {
+  return Array.from(new Set(urls.map((url) => url.trim()).filter(Boolean)));
+}
+
+function galleryFromText(value: string) {
+  return uniqueImageUrls(value.split(/[\n,]+/));
+}
+
 function ProductsManager({ products, categories, admin, onProductCreate, onProductUpdate, onProductDelete }: { products: Product[]; categories: string[]; admin?: boolean; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void> }) {
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -314,6 +322,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   const [saving, setSaving] = useState(false);
   const [deletingSlug, setDeletingSlug] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const availableCategories = categories.length ? categories : [...fallbackCategories];
@@ -325,7 +334,9 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     const formElement = event.currentTarget;
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "").trim();
-    const image = String(form.get("image") || imageUrl || products[0]?.image || heroImg).trim();
+    const fallbackImage = products[0]?.image || heroImg;
+    const image = String(form.get("image") || imageUrl || galleryUrls[0] || fallbackImage).trim();
+    const gallery = uniqueImageUrls([image, ...galleryUrls, ...galleryFromText(String(form.get("gallery") || ""))]);
     const payload = {
       slug: slugify(String(form.get("slug") || name)),
       name,
@@ -337,7 +348,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       stock: Number(form.get("stock") || 0),
       badge: String(form.get("badge") || "") || undefined,
       image,
-      gallery: [image],
+      gallery: gallery.length ? gallery : [image],
       description: String(form.get("description") || "A new Gulabi Threads piece ready for the collection."),
     };
     setSaving(true);
@@ -347,6 +358,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       else await onProductCreate(payload);
       formElement.reset();
       setImageUrl("");
+      setGalleryUrls([]);
       setShowForm(false);
       setEditingProduct(null);
     } catch (exc) {
@@ -357,14 +369,18 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   };
   const startCreate = () => {
     const isCreating = showForm && !editingProduct;
+    const fallbackImage = products[0]?.image || heroImg;
     setEditingProduct(null);
-    setImageUrl(products[0]?.image || heroImg);
+    setImageUrl(fallbackImage);
+    setGalleryUrls([fallbackImage]);
     setError("");
     setShowForm(!isCreating);
   };
   const startEdit = (product: Product) => {
+    const gallery = uniqueImageUrls([product.image, ...(product.gallery || [])]);
     setEditingProduct(product);
     setImageUrl(product.image);
+    setGalleryUrls(gallery.length ? gallery : [product.image]);
     setError("");
     setShowForm(true);
   };
@@ -372,27 +388,47 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     setShowForm(false);
     setEditingProduct(null);
     setImageUrl("");
+    setGalleryUrls([]);
     setError("");
   };
   const uploadProductImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const fallbackImage = products[0]?.image || heroImg;
     setUploadingImage(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploaded = await apiRequest<{ secure_url: string }>("/uploads/product-image", {
-        method: "POST",
-        body: formData,
+      const uploadedUrls = await Promise.all(files.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploaded = await apiRequest<{ secure_url: string }>("/uploads/product-image", {
+          method: "POST",
+          body: formData,
+        });
+        return uploaded.secure_url;
+      }));
+      setGalleryUrls((current) => {
+        const currentWithoutPlaceholder = current.length === 1 && current[0] === fallbackImage ? [] : current;
+        return uniqueImageUrls([...currentWithoutPlaceholder, ...uploadedUrls]);
       });
-      setImageUrl(uploaded.secure_url);
+      setImageUrl((current) => !current || current === fallbackImage ? uploadedUrls[0] : current);
     } catch (exc) {
-      setError(exc instanceof Error ? exc.message : "Could not upload image");
+      setError(exc instanceof Error ? exc.message : "Could not upload images");
     } finally {
       setUploadingImage(false);
       event.target.value = "";
     }
+  };
+  const setCoverImage = (url: string) => {
+    setImageUrl(url);
+    setGalleryUrls((current) => uniqueImageUrls([url, ...current.filter((item) => item !== url)]));
+  };
+  const removeGalleryImage = (url: string) => {
+    setGalleryUrls((current) => {
+      const next = current.filter((item) => item !== url);
+      if (imageUrl === url) setImageUrl(next[0] || "");
+      return next;
+    });
   };
   const deleteProduct = async (product: Product) => {
     if (!window.confirm(`Delete ${product.name}? This removes it from the catalog.`)) return;
@@ -415,11 +451,22 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       <label>Price<input name="price" required type="number" min="0" step="1" placeholder="320" defaultValue={editingProduct?.price} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label><label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label>
       <label>Color<input name="color" placeholder="Blush Rose" defaultValue={editingProduct?.color} /></label><label>Material<input name="material" placeholder="Pebble Leather" defaultValue={editingProduct?.material} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
-        <label>Product Image<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadProductImage} disabled={uploadingImage} /></label>
-        <label>Image URL<input name="image" required placeholder="https://..." value={imageUrl || editingProduct?.image || products[0]?.image || heroImg} onChange={(event) => setImageUrl(event.target.value)} /></label>
+        <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
+        <label>Cover Image URL<input name="image" required placeholder="https://..." value={imageUrl || galleryUrls[0] || editingProduct?.image || products[0]?.image || heroImg} onChange={(event) => setCoverImage(event.target.value)} /></label>
+        <label className="wide">Gallery URLs<textarea name="gallery" rows={3} placeholder="One image URL per line" value={galleryUrls.join("\n")} onChange={(event) => setGalleryUrls(galleryFromText(event.target.value))} /></label>
         <div className="image-upload-preview">
-          <img src={imageUrl || editingProduct?.image || products[0]?.image || heroImg} alt="Product preview" />
-          <span>{uploadingImage ? "Uploading image to Cloudinary..." : "Upload an image or paste a Cloudinary URL."}</span>
+          {galleryUrls.map((url) => (
+            <figure key={url} className={url === imageUrl ? "cover" : ""}>
+              <img src={url} alt="" />
+              <figcaption>{url === imageUrl ? "Cover photo" : "Gallery photo"}</figcaption>
+              <div>
+                <button type="button" onClick={() => setCoverImage(url)}>Use as cover</button>
+                <button type="button" onClick={() => removeGalleryImage(url)}><Trash2 size={14} /> Remove</button>
+              </div>
+            </figure>
+          ))}
+          {!galleryUrls.length && <span>{uploadingImage ? "Uploading images to Cloudinary..." : "Upload multiple photos or paste Cloudinary URLs."}</span>}
+          {uploadingImage && galleryUrls.length > 0 && <span>Uploading images to Cloudinary...</span>}
         </div>
       </div>
       <label className="wide">Description<textarea name="description" rows={3} placeholder="Describe the tote, material, and occasion." defaultValue={editingProduct?.description} /></label>

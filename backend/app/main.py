@@ -36,6 +36,20 @@ def strip_id(document: dict) -> dict:
     return document
 
 
+def normalize_product_document(document: dict) -> dict:
+    product = strip_id(document)
+    image = str(product.get("image") or "").strip()
+    gallery = [str(url).strip() for url in product.get("gallery", []) if str(url).strip()]
+    ordered_gallery = []
+    for url in [image, *gallery]:
+        if url and url not in ordered_gallery:
+            ordered_gallery.append(url)
+    if not image and ordered_gallery:
+        product["image"] = ordered_gallery[0]
+    product["gallery"] = ordered_gallery or ([image] if image else [])
+    return product
+
+
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
     salt = salt or os.urandom(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 120_000)
@@ -881,7 +895,7 @@ async def list_products(
     if in_stock:
         query["stock"] = {"$gt": 0}
     cursor = get_db().products.find(query).sort("name", 1)
-    return [strip_id(document) async for document in cursor]
+    return [normalize_product_document(document) async for document in cursor]
 
 
 @app.get("/api/products/{slug}", response_model=Product)
@@ -889,7 +903,7 @@ async def get_product(slug: str) -> dict:
     product = await get_db().products.find_one({"slug": slug})
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return strip_id(product)
+    return normalize_product_document(product)
 
 
 @app.post("/api/products", response_model=Product, status_code=201)
@@ -900,7 +914,7 @@ async def create_product(payload: Product, authorization: str | None = Header(de
     existing = await db.products.find_one({"slug": payload.slug})
     if existing is not None:
         raise HTTPException(status_code=409, detail="A product with this slug already exists")
-    product = payload.model_dump()
+    product = normalize_product_document(payload.model_dump())
     await db.products.insert_one(product)
     return product
 
@@ -915,7 +929,7 @@ async def update_product(slug: str, payload: Product, authorization: str | None 
         raise HTTPException(status_code=404, detail="Product not found")
     if payload.slug != slug and await db.products.find_one({"slug": payload.slug}) is not None:
         raise HTTPException(status_code=409, detail="A product with this slug already exists")
-    product = payload.model_dump()
+    product = normalize_product_document(payload.model_dump())
     await db.products.replace_one({"slug": slug}, product)
     return product
 

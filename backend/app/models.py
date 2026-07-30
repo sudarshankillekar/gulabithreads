@@ -16,7 +16,7 @@ class Product(BaseModel):
     rating: int = Field(ge=0, le=5)
     stock: int = Field(ge=0)
     image: str
-    gallery: list[str]
+    gallery: list[str] = Field(default_factory=list)
     description: str
     badge: str | None = None
 

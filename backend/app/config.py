@@ -27,6 +27,7 @@ class Settings:
     smtp_from_email: str = os.getenv("SMTP_FROM_EMAIL", "")
     smtp_from_name: str = os.getenv("SMTP_FROM_NAME", "Gulabi Threads")
     smtp_use_tls: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+    admin_order_email: str = os.getenv("ADMIN_ORDER_EMAIL", os.getenv("SMTP_FROM_EMAIL", ""))
     sms_provider: str = os.getenv("SMS_PROVIDER", "brevo").lower()
     brevo_api_key: str = os.getenv("BREVO_API_KEY", "")
     brevo_sms_sender: str = os.getenv("BREVO_SMS_SENDER", "Gulabi")

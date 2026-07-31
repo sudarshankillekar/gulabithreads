@@ -225,6 +225,45 @@ def order_email_body(order: Order) -> str:
     )
 
 
+def admin_order_email_body(order: Order) -> str:
+    address = order.address
+    address_text = "No address captured"
+    if address:
+        address_lines = [
+            address.full_name,
+            address.phone,
+            address.email or "",
+            f"{address.address}{', ' + address.address_line2 if address.address_line2 else ''}",
+            f"{address.city}, {address.state} {address.pincode}",
+            address.country,
+        ]
+        if address.landmark:
+            address_lines.append(f"Landmark: {address.landmark}")
+        if address.delivery_instructions:
+            address_lines.append(f"Delivery instructions: {address.delivery_instructions}")
+        address_text = "\n".join(line for line in address_lines if line)
+    return (
+        "A new Gulabi Threads order has been placed.\n\n"
+        f"Order: {order.id}\n"
+        f"Status: {order.status}\n"
+        f"Checkout mode: {order.checkout_mode}\n"
+        f"Customer: {order.customer}\n"
+        f"Email: {order.customer_email or 'Not provided'}\n"
+        f"Phone: {order.customer_phone or 'Not provided'}\n\n"
+        f"Order summary:\n{order_items_text(order)}\n\n"
+        f"Subtotal: ₹{order.subtotal:,.0f}\n"
+        f"Discount: ₹{order.discount:,.0f}\n"
+        f"GST: ₹{order.tax:,.0f}\n"
+        f"Shipping: ₹{order.shipping_cost:,.0f}\n"
+        f"Total payable: ₹{order.total:,.0f}\n"
+        f"Payment method: {order.payment_method or 'Not specified'}\n"
+        f"Payment status: {order.payment_status}\n"
+        f"Estimated delivery: {order.estimated_delivery_date or '3-5 business days'}\n\n"
+        f"Delivery address:\n{address_text}\n\n"
+        f"Admin orders: {settings.frontend_origin}/admin/orders"
+    )
+
+
 def order_sms_body(order: Order) -> str:
     return (
         f"Gulabi Threads: Order {order.id} confirmed for ₹{order.total:,.0f}. "
@@ -304,6 +343,20 @@ async def send_order_email(order: Order) -> dict:
         return {"channel": "email", "status": "sent", "to": to_email}
     except Exception as exc:
         return {"channel": "email", "status": "failed", "to": to_email, "reason": str(exc)}
+
+
+async def send_admin_order_email(order: Order) -> dict:
+    to_email = settings.admin_order_email
+    from_email = settings.smtp_from_email or settings.smtp_username
+    if not to_email:
+        return {"channel": "admin-email", "status": "skipped", "reason": "Admin order email is not configured"}
+    if not settings.smtp_host or not from_email:
+        return {"channel": "admin-email", "status": "skipped", "reason": "SMTP is not configured"}
+    try:
+        await asyncio.to_thread(send_email_sync, to_email, f"New order {order.id} - Gulabi Threads", admin_order_email_body(order))
+        return {"channel": "admin-email", "status": "sent", "to": to_email}
+    except Exception as exc:
+        return {"channel": "admin-email", "status": "failed", "to": to_email, "reason": str(exc)}
 
 
 async def send_order_status_email(order: Order, previous_status: str) -> dict:
@@ -409,10 +462,11 @@ async def send_order_sms(order: Order) -> dict:
 
 
 async def send_order_confirmation(order: Order) -> list[dict]:
-    results = await asyncio.gather(send_order_email(order), send_order_sms(order))
+    results = await asyncio.gather(send_order_email(order), send_admin_order_email(order), send_order_sms(order))
     await get_db().order_notifications.insert_one(
         {
             "order_id": order.id,
+            "admin_email": settings.admin_order_email,
             "customer_email": order.customer_email,
             "customer_phone": order.customer_phone,
             "results": results,

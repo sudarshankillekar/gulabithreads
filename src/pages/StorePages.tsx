@@ -341,7 +341,8 @@ function OrderSummary({ subtotal, tax, shipping = 0, button, onAction }: { subto
 }
 
 export function CheckoutPage(props: CartProps) {
-  const [step, setStep] = useState<CheckoutStep>("identity");
+  const isSignedInCheckout = Boolean(props.customerSession);
+  const [step, setStep] = useState<CheckoutStep>(() => isSignedInCheckout ? "customer" : "identity");
   const [checkoutMode, setCheckoutMode] = useState<"guest" | "registered">(props.customerSession ? "registered" : "guest");
   const [customer, setCustomer] = useState({ full_name: props.customerSession?.name || "", phone: props.customerSession?.phone || "", email: props.customerSession?.email || "" });
   const [address, setAddress] = useState<AddressPayload | null>(null);
@@ -365,6 +366,13 @@ export function CheckoutPage(props: CartProps) {
   useEffect(() => {
     trackCheckout("checkout_started", { cartCount: props.cartCount });
   }, []);
+
+  useEffect(() => {
+    if (!props.customerSession) return;
+    setCheckoutMode("registered");
+    setCustomer({ full_name: props.customerSession.name, phone: props.customerSession.phone || "", email: props.customerSession.email });
+    setStep((currentStep) => currentStep === "identity" ? "customer" : currentStep);
+  }, [props.customerSession]);
 
   const loadReview = async (nextShipping = shipping, nextCoupon = coupon) => {
     const priced = await apiRequest<CheckoutPrice>("/checkout/price", {
@@ -539,6 +547,13 @@ export function CheckoutPage(props: CartProps) {
       }
     }
   };
+  const goBack = () => {
+    if (step === "payment") setStep("delivery");
+    else if (step === "delivery") setStep("address");
+    else if (step === "address") setStep("customer");
+    else if (step === "customer" && isSignedInCheckout) navigate("/cart");
+    else setStep("identity");
+  };
   return (
     <div>
       <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
@@ -547,14 +562,14 @@ export function CheckoutPage(props: CartProps) {
         {done ? <Success total={confirmedTotal ?? total} customer={customer} onCreateCustomer={props.onCreateCustomer} hasAccount={Boolean(props.customerSession)} /> : (
           props.cart.length ? <form className="checkout-grid" onSubmit={submit}>
             <section className="checkout-panel">
-              {step === "identity" && <IdentityStep isAuthed={Boolean(props.customerSession)} onGuest={() => { setCheckoutMode("guest"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("guest_checkout_selected"); }} onLogin={() => { setCheckoutMode("registered"); if (props.customerSession) setCustomer({ full_name: props.customerSession.name, phone: props.customerSession.phone || "", email: props.customerSession.email }); setStep("customer"); trackCheckout("login_selected"); }} onCreate={() => { setCheckoutMode("registered"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("account_creation_selected"); }} />}
-              {step === "customer" && <CustomerDetailsStep mode={checkoutMode} customer={customer} customerAccounts={props.customerAccounts || []} onLogin={props.onCustomerLogin} onCreateCustomer={props.onCreateCustomer} setCustomer={setCustomer} existingAccount={Boolean(existingAccount)} />}
+              {step === "identity" && !isSignedInCheckout && <IdentityStep onGuest={() => { setCheckoutMode("guest"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("guest_checkout_selected"); }} onLogin={() => { setCheckoutMode("registered"); setStep("customer"); trackCheckout("login_selected"); }} onCreate={() => { setCheckoutMode("registered"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("account_creation_selected"); }} />}
+              {step === "customer" && <CustomerDetailsStep mode={checkoutMode} isAuthenticated={isSignedInCheckout} customer={customer} customerAccounts={props.customerAccounts || []} onLogin={props.onCustomerLogin} onCreateCustomer={props.onCreateCustomer} setCustomer={setCustomer} existingAccount={Boolean(existingAccount)} />}
               {step === "address" && <AddressStep address={address} />}
               {step === "delivery" && <ShippingStep shipping={shipping} setShipping={(value) => { setShipping(value); loadReview(value).catch(() => undefined); }} />}
               {step === "payment" && <PaymentStep payment={payment} setPayment={setPayment} review={review} address={shippingAddress} cartProducts={props.cartProducts} coupon={coupon} setCoupon={setCoupon} applyCoupon={() => loadReview(shipping, coupon)} />}
               {error && <p className="form-error">{error}</p>}
               <div className="button-row checkout-actions">
-                {step !== "identity" && <button type="button" className="secondary-button" onClick={() => setStep(step === "payment" ? "delivery" : step === "delivery" ? "address" : step === "address" ? "customer" : "identity")}>Back</button>}
+                {step !== "identity" && <button type="button" className="secondary-button" onClick={goBack}>Back</button>}
                 {step !== "identity" && <button className="primary-button" disabled={paying}>{paying ? "Processing..." : step === "payment" ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : step === "address" ? "Continue To Delivery" : "Review Order"}</button>}
               </div>
             </section>
@@ -580,21 +595,21 @@ function Progress({ step }: { step: CheckoutStep }) {
   return <div className="progress">{steps.map((item, idx) => <div className={idx <= currentIndex ? "active" : ""} key={item.id}><span>{idx + 1}</span><p>{item.label}</p></div>)}</div>;
 }
 
-function IdentityStep({ isAuthed, onGuest, onLogin, onCreate }: { isAuthed: boolean; onGuest: () => void; onLogin: () => void; onCreate: () => void }) {
+function IdentityStep({ onGuest, onLogin, onCreate }: { onGuest: () => void; onLogin: () => void; onCreate: () => void }) {
   return (
     <>
       <h1>How would you like to checkout?</h1>
       <p>Continue quickly as a guest, or sign in to use saved details.</p>
       <div className="checkout-choice-grid">
         <button type="button" className="checkout-choice recommended" onClick={onGuest}><strong>Continue as Guest</strong><span>Recommended for first-time customers. No account required.</span></button>
-        <button type="button" className="checkout-choice" onClick={onLogin}><strong>{isAuthed ? "Use Signed-In Details" : "Sign In"}</strong><span>Access saved addresses and faster tracking.</span></button>
+        <button type="button" className="checkout-choice" onClick={onLogin}><strong>Sign In</strong><span>Access saved addresses and faster tracking.</span></button>
         <button type="button" className="checkout-choice" onClick={onCreate}><strong>Create Account</strong><span>Save your address after checkout for next time.</span></button>
       </div>
     </>
   );
 }
 
-function CustomerDetailsStep({ mode, customer, onLogin, onCreateCustomer, setCustomer, existingAccount }: { mode: "guest" | "registered"; customer: { full_name: string; phone: string; email: string }; customerAccounts: CustomerAccount[]; onLogin?: (session: AuthSession, password?: string) => void | Promise<void>; onCreateCustomer?: (account: CustomerAccount) => void | Promise<void>; setCustomer: (customer: { full_name: string; phone: string; email: string }) => void; existingAccount: boolean }) {
+function CustomerDetailsStep({ mode, isAuthenticated, customer, onLogin, onCreateCustomer, setCustomer, existingAccount }: { mode: "guest" | "registered"; isAuthenticated: boolean; customer: { full_name: string; phone: string; email: string }; customerAccounts: CustomerAccount[]; onLogin?: (session: AuthSession, password?: string) => void | Promise<void>; onCreateCustomer?: (account: CustomerAccount) => void | Promise<void>; setCustomer: (customer: { full_name: string; phone: string; email: string }) => void; existingAccount: boolean }) {
   const [authError, setAuthError] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -628,7 +643,7 @@ function CustomerDetailsStep({ mode, customer, onLogin, onCreateCustomer, setCus
         <label className="line-input"><input name="phone" placeholder=" " value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} required /><span>Mobile Number *</span></label>
         <label className="line-input wide"><input name="email" placeholder=" " type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} required /><span>Email Address *</span></label>
       </div>
-      {mode === "registered" && <div className="inline-auth">
+      {mode === "registered" && !isAuthenticated && <div className="inline-auth">
         <label>Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="Password" /></label>
         <label>Confirm Password<input value={confirm} onChange={(event) => setConfirm(event.target.value)} type="password" placeholder="Only needed for new account" /></label>
         <div className="button-row"><button type="button" className="secondary-button" onClick={inlineLogin}>Sign In</button><button type="button" className="secondary-button" onClick={inlineCreate}>Create Account</button></div>

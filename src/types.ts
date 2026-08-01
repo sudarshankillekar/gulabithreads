@@ -31,7 +31,7 @@ export type Product = {
 
 export type ProductInput = Omit<Product, "gallery"> & { gallery?: string[] };
 export type CartItem = { slug: string; qty: number };
-export type CheckoutStep = "identity" | "customer" | "address" | "delivery" | "payment" | "confirmation";
+export type CheckoutStep = "identity" | "customer" | "address" | "payment" | "confirmation";
 export type OrderStatus = "Processing" | "In Transit" | "Shipped" | "Delivered" | "Pending" | "Approved" | "Inactive" | "Archived" | "Cancelled";
 export type OrderRow = {
   id: string;

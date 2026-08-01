@@ -346,7 +346,7 @@ export function CheckoutPage(props: CartProps) {
   const [checkoutMode, setCheckoutMode] = useState<"guest" | "registered">(props.customerSession ? "registered" : "guest");
   const [customer, setCustomer] = useState({ full_name: props.customerSession?.name || "", phone: props.customerSession?.phone || "", email: props.customerSession?.email || "" });
   const [address, setAddress] = useState<AddressPayload | null>(null);
-  const [shipping, setShipping] = useState(0);
+  const shipping = 0;
   const [payment, setPayment] = useState("Razorpay");
   const [coupon, setCoupon] = useState("");
   const [review, setReview] = useState<CheckoutPrice | null>(null);
@@ -386,7 +386,7 @@ export function CheckoutPage(props: CartProps) {
   const completeOrderWithoutRazorpay = async (shippingAddress: AddressPayload) => {
     const created = await apiRequest<OrderRow>("/orders", {
       method: "POST",
-      body: JSON.stringify({ customer: shippingAddress.full_name, customer_email: customer.email, customer_phone: customer.phone, checkout_mode: checkoutMode, items: props.cart, address: shippingAddress, shipping_method: shipping ? "Express Shipping" : "Standard Shipping", shipping_cost: shipping, payment_method: "Cash on Delivery", coupon_code: review?.coupon_code || coupon, idempotency_key: idempotencyKey }),
+      body: JSON.stringify({ customer: shippingAddress.full_name, customer_email: customer.email, customer_phone: customer.phone, checkout_mode: checkoutMode, items: props.cart, address: shippingAddress, shipping_method: "Standard Shipping", shipping_cost: shipping, payment_method: "Cash on Delivery", coupon_code: review?.coupon_code || coupon, idempotency_key: idempotencyKey }),
     });
     setConfirmedTotal(created.total);
     props.onOrderPlaced?.(created);
@@ -447,7 +447,7 @@ export function CheckoutPage(props: CartProps) {
                 checkout_mode: checkoutMode,
                 items: props.cart,
                 address: shippingAddress,
-                shipping_method: shipping ? "Express Shipping" : "Standard Shipping",
+                shipping_method: "Standard Shipping",
                 shipping_cost: shipping,
                 payment_method: "Razorpay",
                 coupon_code: review?.coupon_code || coupon,
@@ -517,14 +517,10 @@ export function CheckoutPage(props: CartProps) {
       };
       setAddress(nextAddress);
       if (form.get("save_address")) saveCheckoutAddress(nextAddress);
-      setStep("delivery");
-      trackCheckout("address_completed", { stage: "delivery" });
-      return;
-    }
-    if (step === "delivery") {
       try {
-        await loadReview();
+        await loadReview(0);
         setStep("payment");
+        trackCheckout("address_completed", { stage: "address" });
       } catch (exc) {
         setError(exc instanceof Error ? exc.message : "Could not review this order. Please refresh your bag and try again.");
       }
@@ -548,8 +544,7 @@ export function CheckoutPage(props: CartProps) {
     }
   };
   const goBack = () => {
-    if (step === "payment") setStep("delivery");
-    else if (step === "delivery") setStep("address");
+    if (step === "payment") setStep("address");
     else if (step === "address") setStep("customer");
     else if (step === "customer" && isSignedInCheckout) navigate("/cart");
     else setStep("identity");
@@ -565,12 +560,11 @@ export function CheckoutPage(props: CartProps) {
               {step === "identity" && !isSignedInCheckout && <IdentityStep onGuest={() => { setCheckoutMode("guest"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("guest_checkout_selected"); }} onLogin={() => { setCheckoutMode("registered"); setStep("customer"); trackCheckout("login_selected"); }} onCreate={() => { setCheckoutMode("registered"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("account_creation_selected"); }} />}
               {step === "customer" && <CustomerDetailsStep mode={checkoutMode} isAuthenticated={isSignedInCheckout} customer={customer} customerAccounts={props.customerAccounts || []} onLogin={props.onCustomerLogin} onCreateCustomer={props.onCreateCustomer} setCustomer={setCustomer} existingAccount={Boolean(existingAccount)} />}
               {step === "address" && <AddressStep address={address} />}
-              {step === "delivery" && <ShippingStep shipping={shipping} setShipping={(value) => { setShipping(value); loadReview(value).catch(() => undefined); }} />}
               {step === "payment" && <PaymentStep payment={payment} setPayment={setPayment} review={review} address={shippingAddress} cartProducts={props.cartProducts} coupon={coupon} setCoupon={setCoupon} applyCoupon={() => loadReview(shipping, coupon)} />}
               {error && <p className="form-error">{error}</p>}
               <div className="button-row checkout-actions">
                 {step !== "identity" && <button type="button" className="secondary-button" onClick={goBack}>Back</button>}
-                {step !== "identity" && <button className="primary-button" disabled={paying}>{paying ? "Processing..." : step === "payment" ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : step === "address" ? "Continue To Delivery" : "Review Order"}</button>}
+                {step !== "identity" && <button className="primary-button" disabled={paying}>{paying ? "Processing..." : step === "payment" ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order"}</button>}
               </div>
             </section>
             <OrderSummary subtotal={review?.subtotal ?? props.subtotal} tax={review?.tax ?? props.subtotal * 0.18} shipping={review?.shipping_cost ?? shipping} button="Back To Cart" onAction={() => navigate("/cart")} />
@@ -587,7 +581,6 @@ function Progress({ step }: { step: CheckoutStep }) {
     { id: "cart", label: "Cart" },
     { id: "customer", label: "Customer Details" },
     { id: "address", label: "Delivery Address" },
-    { id: "delivery", label: "Delivery Method" },
     { id: "payment", label: "Payment" },
     { id: "confirmation", label: "Confirmation" },
   ];
@@ -659,10 +652,6 @@ function AddressStep({ address }: { address: AddressPayload | null }) {
 
 function LineInput({ name, label, wide, required, defaultValue }: { name: string; label: string; wide?: boolean; required?: boolean; defaultValue?: string }) {
   return <label className={wide ? "line-input wide" : "line-input"}><input name={name} placeholder=" " defaultValue={defaultValue} required={required} /><span>{label}</span></label>;
-}
-
-function ShippingStep({ shipping, setShipping }: { shipping: number; setShipping: (value: number) => void }) {
-  return <><h1>Shipping Method</h1><p>Choose the delivery speed that suits your schedule.</p><div className="choice-list">{[[0, "Standard Shipping", "3-5 business days"], [25, "Express Shipping", "1-2 business days"]].map(([cost, label, desc]) => <label className={shipping === cost ? "choice active" : "choice"} key={label as string}><input type="radio" name="shipping" checked={shipping === cost} onChange={() => setShipping(cost as number)} /><span><Truck /> <strong>{label}</strong><small>{desc}</small></span><b>{cost ? money(cost as number) : "FREE"}</b></label>)}</div></>;
 }
 
 function PaymentStep({ payment, setPayment, review, address, cartProducts, coupon, setCoupon, applyCoupon }: { payment: string; setPayment: (value: string) => void; review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => void }) {

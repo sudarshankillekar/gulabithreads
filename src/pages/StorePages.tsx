@@ -201,17 +201,6 @@ export function HomePage(props: StoreProps) {
         <SectionTitle eyebrow="Curated Selection" title="New Arrivals" action="View All Products" />
         <div className="product-grid">{props.products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div>
       </main>
-      <section className="lifestyle category-section">
-        <span className="eyebrow">Shop by category</span>
-        <h2>Categories</h2>
-        <div className="category-grid">
-          {props.categories.map((item) => (
-            <button key={item} className="category-tile" onClick={() => navigate(shopPath(item))}>
-              <span>{item}</span>
-            </button>
-          ))}
-        </div>
-      </section>
       <StoreFooter categories={props.categories} />
     </div>
   );

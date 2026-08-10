@@ -5,6 +5,7 @@ import { useLocalState } from "./hooks/useLocalState";
 import { usePath } from "./hooks/usePath";
 import { categories as fallbackCategories, products, orders } from "./data/catalog";
 import { navigate } from "./lib/navigation";
+import { discountedProductPrice } from "./lib/pricing";
 import { AccountPage, DashboardPage } from "./pages/DashboardPages";
 import { AdminLogoutPage, LoginPage, LogoutPage } from "./pages/AuthPages";
 import { CartPage, CheckoutPage, HomePage, NotFound, OrderConfirmationPage, ProductPage, ShopPage, TrackOrderPage } from "./pages/StorePages";
@@ -151,7 +152,7 @@ function App() {
 
   const cartProducts = cart.map((item) => ({ item, product: catalog.find((p) => p.slug === item.slug)! })).filter((row) => row.product);
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = cartProducts.reduce((sum, row) => sum + row.product.price * row.item.qty, 0);
+  const subtotal = cartProducts.reduce((sum, row) => sum + discountedProductPrice(row.product) * row.item.qty, 0);
   const isCustomerAuthed = Boolean(customerSession);
 
   const addCart = (slug: string) => {

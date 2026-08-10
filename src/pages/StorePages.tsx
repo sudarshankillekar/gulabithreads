@@ -22,8 +22,10 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { money } from "../lib/format";
+import { discountedProductPrice } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
 import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
+import { PriceDisplay } from "../components/PriceDisplay";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
 
 const CONTACT_PHONE = "7349583334";
@@ -179,7 +181,7 @@ function ProductCard({ product, wishlist, addCart, toggleWish }: { product: Prod
         <Heart size={18} fill={wished ? "currentColor" : "none"} />
       </button>
       <button className="product-name" onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</button>
-      <p>{money(product.price)}</p>
+      <PriceDisplay product={product} />
       <button className="text-button" disabled={!inStock} onClick={() => addCart(product.slug)}>{inStock ? "Add To Bag" : "Out Of Stock"}</button>
     </article>
   );
@@ -230,7 +232,7 @@ export function ShopPage(props: StoreProps) {
   const [max, setMax] = useState(1300);
   const [inStock, setInStock] = useState(false);
   const [mobileFilters, setMobileFilters] = useState(false);
-  const filtered = props.products.filter((p) => (category === "All" || p.category === category) && p.price <= max && (!inStock || p.stock > 0) && p.name.toLowerCase().includes(query.toLowerCase()));
+  const filtered = props.products.filter((p) => (category === "All" || p.category === category) && discountedProductPrice(p) <= max && (!inStock || p.stock > 0) && p.name.toLowerCase().includes(query.toLowerCase()));
   const filters = (
     <aside className="filters">
       <div className="filter-title"><h3>Filters</h3><button onClick={() => { setCategory("All"); setQuery(""); setMax(1300); setInStock(false); navigate(shopPath("All")); }}>Clear All</button></div>
@@ -278,7 +280,7 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
           </div>
           <aside className="buy-panel">
             <h1>{product.name}</h1>
-            <p className="price">{money(product.price)}</p>
+            <PriceDisplay product={product} className="price" />
             <div className="stars">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={16} fill={i < product.rating ? "currentColor" : "none"} />)}<span>{product.stock} in stock</span></div>
             <button className="primary-button full" disabled={product.stock <= 0} onClick={() => addCart(product.slug)}>{product.stock > 0 ? "Add To Bag" : "Out Of Stock"}</button>
             <button className="secondary-button full" onClick={() => toggleWish(product.slug)}>{wishlist.includes(product.slug) ? "Saved To Wishlist" : "Add To Wishlist"}</button>
@@ -307,7 +309,7 @@ export function CartPage(props: CartProps) {
                 <article className="cart-item" key={product.slug}>
                   <img src={product.image} alt={product.name} />
                   <div>
-                    <div className="cart-line"><h3>{product.name}</h3><strong>{money(product.price * item.qty)}</strong></div>
+                    <div className="cart-line"><h3>{product.name}</h3><PriceDisplay product={product} quantity={item.qty} className="cart-price" /></div>
                     <p>{product.color} | One Size</p>
                     <div className="cart-line">
                       <div className="qty"><button onClick={() => props.updateQty(product.slug, item.qty - 1)}><Minus size={14} /></button><span>{item.qty}</span><button onClick={() => props.updateQty(product.slug, item.qty + 1)}><Plus size={14} /></button></div>
@@ -655,7 +657,10 @@ function LineInput({ name, label, wide, required, defaultValue }: { name: string
 }
 
 function PaymentStep({ payment, setPayment, review, address, cartProducts, coupon, setCoupon, applyCoupon }: { payment: string; setPayment: (value: string) => void; review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => void }) {
-  const items = review?.items || cartProducts.map(({ item, product }) => ({ slug: product.slug, name: product.name, image: product.image, variant: `${product.color} | ${product.material}`, qty: item.qty, unit_price: product.price, line_total: product.price * item.qty }));
+  const items = review?.items || cartProducts.map(({ item, product }) => {
+    const unitPrice = discountedProductPrice(product);
+    return { slug: product.slug, name: product.name, image: product.image, variant: `${product.color} | ${product.material}`, qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
+  });
   return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong><span>{item.variant}</span><small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="WELCOME10" /></label><button type="button" className="secondary-button" onClick={applyCoupon}>Apply</button></div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><div><span>GST</span><b>{money(review?.tax || 0)}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list">{["Razorpay", "Cash on Delivery"].map((item) => <label className={payment === item ? "choice active" : "choice"} key={item}><input type="radio" name="payment" checked={payment === item} onChange={() => setPayment(item)} /><span><CreditCard /> <strong>{item === "Razorpay" ? "Razorpay (UPI, Card, Wallet)" : item}</strong><small>{item === "Razorpay" ? "Secure online payment" : "Pay when your order arrives"}</small></span><ShieldCheck /></label>)}</div></>;
 }
 

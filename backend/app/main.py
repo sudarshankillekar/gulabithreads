@@ -40,6 +40,11 @@ def normalize_product_document(document: dict) -> dict:
     product = strip_id(document)
     image = str(product.get("image") or "").strip()
     gallery = [str(url).strip() for url in product.get("gallery", []) if str(url).strip()]
+    try:
+        discount_percent = float(product.get("discount_percent", 0) or 0)
+    except (TypeError, ValueError):
+        discount_percent = 0
+    product["discount_percent"] = max(0, min(99, round(discount_percent)))
     ordered_gallery = []
     for url in [image, *gallery]:
         if url and url not in ordered_gallery:
@@ -48,6 +53,19 @@ def normalize_product_document(document: dict) -> dict:
         product["image"] = ordered_gallery[0]
     product["gallery"] = ordered_gallery or ([image] if image else [])
     return product
+
+
+def discounted_unit_price(product: dict) -> float:
+    try:
+        price = float(product.get("price", 0) or 0)
+    except (TypeError, ValueError):
+        price = 0
+    try:
+        discount_percent = float(product.get("discount_percent", 0) or 0)
+    except (TypeError, ValueError):
+        discount_percent = 0
+    discount_percent = max(0, min(99, discount_percent))
+    return float(round(price * (100 - discount_percent) / 100))
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -549,7 +567,7 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
             raise HTTPException(status_code=404, detail=f"Product {item.slug} not found")
         if product["stock"] < item.qty:
             raise HTTPException(status_code=409, detail=f"Only {product['stock']} left for {product['name']}")
-        unit_price = float(product["price"])
+        unit_price = discounted_unit_price(product)
         line_total = unit_price * item.qty
         subtotal += line_total
         line_items.append(
@@ -944,12 +962,16 @@ async def list_products(
         query["category"] = category
     if q:
         query["name"] = {"$regex": q, "$options": "i"}
-    if max_price is not None:
-        query["price"] = {"$lte": max_price}
     if in_stock:
         query["stock"] = {"$gt": 0}
     cursor = get_db().products.find(query).sort("name", 1)
-    return [normalize_product_document(document) async for document in cursor]
+    products = []
+    async for document in cursor:
+        product = normalize_product_document(document)
+        if max_price is not None and discounted_unit_price(product) > max_price:
+            continue
+        products.append(product)
+    return products
 
 
 @app.get("/api/products/{slug}", response_model=Product)

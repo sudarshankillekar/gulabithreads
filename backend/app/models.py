@@ -10,6 +10,7 @@ class Product(BaseModel):
     slug: str
     name: str
     price: float = Field(ge=0)
+    discount_percent: float = Field(default=0, ge=0, le=99)
     category: Category
     color: str
     material: str

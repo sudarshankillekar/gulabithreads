@@ -1,8 +1,10 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import { BarChart3, Bell, CreditCard, Download, Eye, Heart, Home, LayoutDashboard, LogOut, MapPin, Menu, Package, PackageCheck, Pencil, Plus, Search, Settings, ShoppingBag, Tags, Trash2, Upload, User, Warehouse } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { PriceDisplay } from "../components/PriceDisplay";
 import { categories as fallbackCategories, heroImg } from "../data/catalog";
 import { money, slugify } from "../lib/format";
+import { discountedProductPrice, discountPercent } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
 import type { Category, CategoryRecord, CustomerRecord, OrderRow, OrderStatus, Product, ProductInput } from "../types";
 
@@ -78,7 +80,7 @@ function CustomerWishlist({ products, addCart, toggleWish }: { products: Product
               <div>
                 <button className="account-wishlist-name" onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</button>
                 <p>{product.color} | {product.material}</p>
-                <strong>{money(product.price)}</strong>
+                <PriceDisplay product={product} />
               </div>
               <div className="account-wishlist-actions">
                 <button className="primary-button" onClick={() => addCart(product.slug)}>Add To Bag</button>
@@ -328,7 +330,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   const availableCategories = categories.length ? categories : [...fallbackCategories];
   const rows = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
   const lowStock = products.filter((product) => product.stock < 5).length;
-  const inventoryValue = products.reduce((sum, product) => sum + product.price * product.stock, 0);
+  const inventoryValue = products.reduce((sum, product) => sum + discountedProductPrice(product) * product.stock, 0);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -341,6 +343,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       slug: slugify(String(form.get("slug") || name)),
       name,
       price: Number(form.get("price") || 0),
+      discount_percent: Number(form.get("discount_percent") || 0),
       category: String(form.get("category") || availableCategories[0]) as Category,
       color: String(form.get("color") || "Blush Rose"),
       material: String(form.get("material") || "Pebble Leather"),
@@ -448,7 +451,8 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     {admin && showForm && <form className="admin-product-form" key={editingProduct?.slug || "create"} onSubmit={submit}>
       <div className="form-section-title"><h2>{editingProduct ? "Edit Product" : "Add Product"}</h2><p>{editingProduct ? "Update product details in MongoDB and refresh the storefront immediately." : "New products are saved through the Python API into MongoDB."}</p></div>
       <label>Name<input name="name" required placeholder="The Jaipur Market Tote" defaultValue={editingProduct?.name} /></label><label>Slug<input name="slug" placeholder="jaipur-market-tote" defaultValue={editingProduct?.slug} /></label><label>Category<select name="category" defaultValue={editingProduct?.category || availableCategories[0]}>{availableCategories.map((category) => <option key={category}>{category}</option>)}</select></label>
-      <label>Price<input name="price" required type="number" min="0" step="1" placeholder="320" defaultValue={editingProduct?.price} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label><label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label>
+      <label>Original Price<input name="price" required type="number" min="0" step="1" placeholder="999" defaultValue={editingProduct?.price} /></label><label>Discount %<input name="discount_percent" type="number" min="0" max="99" step="1" placeholder="47" defaultValue={editingProduct?.discount_percent || 0} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label>
+      <label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label>
       <label>Color<input name="color" placeholder="Blush Rose" defaultValue={editingProduct?.color} /></label><label>Material<input name="material" placeholder="Pebble Leather" defaultValue={editingProduct?.material} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
         <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
@@ -474,7 +478,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       <div className="form-actions"><button type="button" className="secondary-button" onClick={cancelForm}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : editingProduct ? "Update Product" : "Save Product"}</button></div>
     </form>}
     <label className="dash-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products" /></label>
-    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>{rows.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td>{money(product.price)}</td><td>{product.stock}</td><td><div className="table-actions"><button aria-label={`View ${product.name}`} onClick={() => navigate(`/product/${product.slug}`)}><Eye size={16} /></button>{admin && <button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Pencil size={16} /></button>}{admin && <button aria-label={`Delete ${product.name}`} disabled={deletingSlug === product.slug} onClick={() => deleteProduct(product)}><Trash2 size={16} /></button>}</div></td></tr>)}</tbody></table></div>
+    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>{rows.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td><PriceDisplay product={product} /></td><td>{product.stock}</td><td><div className="table-actions"><button aria-label={`View ${product.name}`} onClick={() => navigate(`/product/${product.slug}`)}><Eye size={16} /></button>{admin && <button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Pencil size={16} /></button>}{admin && <button aria-label={`Delete ${product.name}`} disabled={deletingSlug === product.slug} onClick={() => deleteProduct(product)}><Trash2 size={16} /></button>}</div></td></tr>)}</tbody></table></div>
   </>;
 }
 
@@ -614,8 +618,8 @@ function InventoryManager({ products }: { products: Product[] }) {
   const units = products.reduce((sum, product) => sum + product.stock, 0);
   return <>
     <div className="dash-heading"><div><h1>Inventory</h1><p>Monitor stock levels, inventory value, and low-stock products before replenishment.</p></div></div>
-    <div className="metric-grid product-metrics"><Metric icon={<Warehouse />} label="Inventory Units" value={String(units)} /><Metric icon={<Bell />} label="Low Stock" value={String(lowStock.length)} /><Metric icon={<Package />} label="Out Of Stock" value={String(outOfStock.length)} /><Metric icon={<BarChart3 />} label="Stock Value" value={money(products.reduce((sum, product) => sum + product.price * product.stock, 0))} /></div>
-    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Unit Price</th><th>Value</th><th>Status</th></tr></thead><tbody>{products.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td>{product.stock}</td><td>{money(product.price)}</td><td>{money(product.price * product.stock)}</td><td><Status status={product.stock === 0 || product.stock < 5 ? "Pending" : "Approved"} /></td></tr>)}</tbody></table></div>
+    <div className="metric-grid product-metrics"><Metric icon={<Warehouse />} label="Inventory Units" value={String(units)} /><Metric icon={<Bell />} label="Low Stock" value={String(lowStock.length)} /><Metric icon={<Package />} label="Out Of Stock" value={String(outOfStock.length)} /><Metric icon={<BarChart3 />} label="Stock Value" value={money(products.reduce((sum, product) => sum + discountedProductPrice(product) * product.stock, 0))} /></div>
+    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Unit Price</th><th>Value</th><th>Status</th></tr></thead><tbody>{products.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td>{product.stock}</td><td><PriceDisplay product={product} /></td><td>{money(discountedProductPrice(product) * product.stock)}{discountPercent(product) > 0 && <small>Sale stock value</small>}</td><td><Status status={product.stock === 0 || product.stock < 5 ? "Pending" : "Approved"} /></td></tr>)}</tbody></table></div>
   </>;
 }
 

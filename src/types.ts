@@ -18,6 +18,7 @@ export type Product = {
   slug: string;
   name: string;
   price: number;
+  discount_percent?: number;
   category: Category;
   color: string;
   material: string;

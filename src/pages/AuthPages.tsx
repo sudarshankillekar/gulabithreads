@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { LogOut } from "lucide-react";
-import { heroImg, productImg } from "../data/catalog";
+import { Eye, EyeOff, LogOut, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { productImg } from "../data/catalog";
 import { navigate } from "../lib/navigation";
 import type { AuthSession, CustomerAccount } from "../types";
 
@@ -64,7 +64,7 @@ function GoogleSignInButton({ onCredential, onError }: { onCredential: (credenti
         window.google.accounts.id.renderButton(buttonRef.current, {
           theme: "outline",
           size: "large",
-          text: "continue_with",
+          text: "signin_with",
           shape: "rectangular",
           width: Math.min(360, buttonRef.current.offsetWidth || 320),
         });
@@ -78,7 +78,7 @@ function GoogleSignInButton({ onCredential, onError }: { onCredential: (credenti
   if (!clientId) {
     return (
       <button type="button" className="google-button" onClick={() => onError("Google sign-in is not configured yet.")}>
-        <span>G</span> Continue with Google
+        <span>G</span> Login with Google
       </button>
     );
   }
@@ -122,6 +122,7 @@ export function LoginPage({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const switchMode = (nextMode: AuthMode) => {
     setAuthMode(nextMode);
@@ -250,54 +251,82 @@ export function LoginPage({
 
   const title = isAdmin ? (adminConfigured ? "Admin Sign In" : "Create Admin Password") : authMode === "create" ? "Create Account" : authMode === "forgot" ? "Reset Password" : authMode === "reset" ? "Create New Password" : "Sign In";
   const buttonText = saving ? "Please Wait..." : isAdmin ? (adminConfigured ? "Enter Admin Panel" : "Create Admin Password") : authMode === "create" ? "Create Account" : authMode === "forgot" ? "Send Reset Link" : authMode === "reset" ? "Update Password" : "Login";
+  const passwordType = showPassword ? "text" : "password";
+  const visualImage = isAdmin ? productImg : "/assets/gulabi-login-visual.png";
 
   return (
-    <div className="auth-page">
-      <button className="auth-brand" onClick={() => navigate("/")}>Gulabi Threads</button>
+    <div className={isAdmin ? "auth-page admin-auth-page" : "auth-page customer-auth-page"}>
       <section className="auth-visual">
-        <img src={isAdmin ? productImg : heroImg} alt={isAdmin ? "Admin product management workspace" : "Gulabi Threads customer login"} />
-        <div>
-          <span className="eyebrow">{isAdmin ? "Admin Panel" : "Luxury Member Access"}</span>
-          <h1>{isAdmin ? "Manage the Atelier" : "Welcome Back"}</h1>
-          <p>{isAdmin ? (adminConfigured ? "Track products, inventory, and boutique orders from one focused workspace." : "Create the first backend-backed admin password for this boutique workspace.") : "Sign in to view orders, saved pieces, addresses, and your Gulabi Threads curation."}</p>
-        </div>
-      </section>
-      <form className="auth-card" onSubmit={submit}>
-        <span className="eyebrow">{isAdmin ? "Secure Admin Login" : "Customer Login"}</span>
-        <h2>{title}</h2>
-        {!isAdmin && authMode !== "forgot" && authMode !== "reset" && (
-          <div className="auth-toggle">
-            <button type="button" className={authMode === "login" ? "active" : ""} onClick={() => switchMode("login")}>Login</button>
-            <button type="button" className={authMode === "create" ? "active" : ""} onClick={() => switchMode("create")}>Create Account</button>
-          </div>
-        )}
-        {!isAdmin && authMode === "login" && (
+        <img src={visualImage} alt={isAdmin ? "Admin product management workspace" : "Gulabi Threads handmade bags and pouches login visual"} />
+        {isAdmin && (
           <>
-            <GoogleSignInButton onCredential={googleLogin} onError={setError} />
-            <div className="auth-divider"><span>or</span></div>
+            <button className="auth-brand auth-logo-mark" onClick={() => navigate("/")} aria-label="Go to Gulabi Threads home">
+              <span className="auth-logo-symbol" aria-hidden="true" />
+              <strong>Gulabi</strong>
+              <small>Threads</small>
+            </button>
+            <div className="auth-visual-copy">
+              <h1>Manage the Atelier</h1>
+              <p>{adminConfigured ? "Track products, inventory, and boutique orders from one focused workspace." : "Create the first backend-backed admin password for this boutique workspace."}</p>
+            </div>
           </>
         )}
-        {!isAdmin && authMode === "create" && <label>Name<input name="name" required placeholder="Arjun Mehta" /></label>}
-        {isAdmin && !adminConfigured && <label>Admin Name<input name="name" required placeholder="Priya Sharma" /></label>}
-        {isAdmin ? (
-          <label>Email<input name="email" type="email" required placeholder="admin@gulabithreads.com" /></label>
-        ) : authMode === "create" ? (
-          <label>Email Address<input name="email" type="email" required placeholder="you@example.com" /></label>
-        ) : authMode === "reset" ? null : (
-          <label>Email Address or Phone Number<input name="identifier" required placeholder="you@example.com or 9876543210" /></label>
-        )}
-        {!isAdmin && authMode === "create" && <label>Phone Number<input name="phone" required type="tel" placeholder="9876543210" /></label>}
-        {authMode !== "forgot" && <label>Password<input name="password" type="password" required placeholder={isAdmin ? "At least 6 characters" : authMode === "create" ? "Create a password" : authMode === "reset" ? "New password" : "Your password"} /></label>}
-        {!isAdmin && authMode === "reset" && <label>Confirm Password<input name="confirm_password" type="password" required placeholder="Confirm new password" /></label>}
-        {!isAdmin && authMode === "login" && <label className="remember-row"><input name="remember" type="checkbox" defaultChecked /> Keep me signed in on this device</label>}
-        {message && <p className="checkout-note compact">{message}</p>}
-        {error && <p className="form-error">{error}</p>}
-        <button className="primary-button full" disabled={saving}>{buttonText}</button>
-        {!isAdmin && authMode === "login" && <button type="button" className="auth-link" onClick={() => switchMode("forgot")}>Forgot password?</button>}
-        {!isAdmin && authMode !== "login" && <button type="button" className="auth-link" onClick={() => switchMode("login")}>Back to login</button>}
-        {!isAdmin && <button type="button" className="auth-link" onClick={() => navigate("/track")}>Track an order without signing in</button>}
-        <button type="button" className="auth-link" onClick={() => navigate(isAdmin ? "/login" : "/admin/login")}>{isAdmin ? "Customer login" : "Admin login"}</button>
-      </form>
+      </section>
+      <section className="auth-panel" aria-label={isAdmin ? "Admin login" : "Customer login"}>
+        <form className="auth-card" onSubmit={submit}>
+          <div className="auth-card-brand auth-logo-mark">
+            <span className="auth-logo-symbol" aria-hidden="true" />
+            <strong>Gulabi</strong>
+            <small>Threads</small>
+          </div>
+          <h2>{title}</h2>
+          <p className="auth-card-intro">{isAdmin ? "Sign in to manage catalog, inventory, and orders." : authMode === "create" ? "Create your account to save addresses and track orders faster." : authMode === "forgot" ? "Enter your email or phone number and we will send reset instructions." : authMode === "reset" ? "Choose a new password for your Gulabi Threads account." : "Welcome back! Please sign in to your account."}</p>
+          {!isAdmin && authMode === "login" && (
+            <>
+              <GoogleSignInButton onCredential={googleLogin} onError={setError} />
+              <div className="auth-divider"><span>or</span></div>
+            </>
+          )}
+          {!isAdmin && authMode === "create" && <label>Name<input name="name" required placeholder="Arjun Mehta" /></label>}
+          {isAdmin && !adminConfigured && <label>Admin Name<input name="name" required placeholder="Priya Sharma" /></label>}
+          {isAdmin ? (
+            <label>Email<input name="email" type="email" required placeholder="admin@gulabithreads.com" /></label>
+          ) : authMode === "create" ? (
+            <label>Email Address<input name="email" type="email" required placeholder="you@example.com" /></label>
+          ) : authMode === "reset" ? null : (
+            <label>Email Address or Phone Number<input name="identifier" required placeholder="you@example.com or 9876543210" /></label>
+          )}
+          {!isAdmin && authMode === "create" && <label>Phone Number<input name="phone" required type="tel" placeholder="9876543210" /></label>}
+          {authMode !== "forgot" && (
+            <label>Password
+              <span className="auth-password-field">
+                <input name="password" type={passwordType} required placeholder={isAdmin ? "At least 6 characters" : authMode === "create" ? "Create a password" : authMode === "reset" ? "New password" : "Your password"} />
+                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((visible) => !visible)}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </span>
+            </label>
+          )}
+          {!isAdmin && authMode === "reset" && <label>Confirm Password<input name="confirm_password" type={passwordType} required placeholder="Confirm new password" /></label>}
+          {!isAdmin && authMode === "login" && <label className="remember-row"><input name="remember" type="checkbox" defaultChecked /> Keep me signed in on this device</label>}
+          {message && <p className="checkout-note compact">{message}</p>}
+          {error && <p className="form-error">{error}</p>}
+          <button className="primary-button full" disabled={saving}>{buttonText}</button>
+          {!isAdmin && authMode === "login" && <button type="button" className="auth-link" onClick={() => switchMode("forgot")}>Forgot password?</button>}
+          {!isAdmin && authMode === "login" && <button type="button" className="auth-link" onClick={() => switchMode("create")}>Create account</button>}
+          {!isAdmin && authMode !== "login" && <button type="button" className="auth-link" onClick={() => switchMode("login")}>Back to login</button>}
+          {!isAdmin && <button type="button" className="auth-link" onClick={() => navigate("/track")}>Track an order without signing in</button>}
+          <button type="button" className="auth-link" onClick={() => navigate(isAdmin ? "/login" : "/admin/login")}>{isAdmin ? "Customer login" : "Admin login"}</button>
+        </form>
+      </section>
+      {!isAdmin && (
+        <footer className="auth-trust-strip" aria-label="Shopping benefits">
+          <span><Truck size={20} /><b>Free Shipping</b><small>on orders above ₹1499</small></span>
+          <span><RotateCcw size={20} /><b>Easy Returns</b><small>for damaged or defective items</small></span>
+          <span><ShieldCheck size={20} /><b>Secure Payments</b><small>100% protected</small></span>
+          <small>© 2026 Gulabi Threads. All rights reserved.</small>
+        </footer>
+      )}
     </div>
   );
 }

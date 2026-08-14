@@ -84,6 +84,7 @@ p { color: var(--muted); line-height: 1.6; }
 .footer-contact a { display: inline-flex; align-items: center; gap: 8px; color: white; text-decoration: none; text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 700; }
 .footer-contact a:hover { color: rgba(255,255,255,.75); }
 .page, .cart-page, .checkout-page, .product-detail { max-width: 1440px; margin: 0 auto; padding: 120px clamp(20px, 4vw, 64px); }
+.checkout-page { padding-top: 196px; }
 .section-title { display: flex; justify-content: space-between; align-items: end; margin-bottom: 46px; gap: 20px; }
 .section-title h2 { font-size: 34px; margin-top: 10px; }
 .section-title button { border-bottom: 1px solid var(--text); text-transform: uppercase; letter-spacing: .12em; font-weight: 700; font-size: 12px; }
@@ -433,6 +434,7 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
   .product-card { max-width: none; }
   .shop-layout, .detail-grid, .cart-layout, .checkout-grid { grid-template-columns: 1fr; }
+  .checkout-page { padding-top: 158px; }
   .checkout-page.has-payment-cta { padding-bottom: 148px; }
   .payment-sticky-cta { position: fixed; z-index: 90; left: max(18px, env(safe-area-inset-left)); right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 16px; border: 1px solid rgba(204,89,128,.28); border-radius: 8px; background: rgba(255,255,255,.96); box-shadow: 0 18px 45px rgba(92,42,67,.18); backdrop-filter: blur(14px); }
   .payment-sticky-cta .primary-button { width: auto; min-width: 220px; }
@@ -485,6 +487,7 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .hero p { font-size: 16px; }
   .hero-promises { display: grid; gap: 12px; }
   .page, .cart-page, .checkout-page, .product-detail { padding: 72px 16px 84px; }
+  .checkout-page { padding-top: 132px; }
   .product-detail { padding-top: 140px; }
   .breadcrumbs { margin-bottom: 22px; }
   .gallery > img { max-height: 58vh; aspect-ratio: 4 / 5; object-fit: contain; object-position: center; }

@@ -318,7 +318,7 @@ export function CartPage(props: CartProps) {
   );
 }
 
-function OrderSummary({ subtotal, tax, shipping = 0, button, onAction }: { subtotal: number; tax: number; shipping?: number; button: string; onAction: () => void }) {
+function OrderSummary({ subtotal, tax, shipping = 0, button, onAction, buttonType = "button", disabled = false }: { subtotal: number; tax: number; shipping?: number; button: string; onAction: () => void; buttonType?: "button" | "submit"; disabled?: boolean }) {
   return (
     <aside className="summary">
       <h3>Order Summary</h3>
@@ -327,7 +327,7 @@ function OrderSummary({ subtotal, tax, shipping = 0, button, onAction }: { subto
       <div><span>Shipping</span><span>{shipping ? money(shipping) : "FREE"}</span></div>
       <div><span>GST (18%)</span><span>{money(tax)}</span></div>
       <strong><span>Total</span><span>{money(subtotal + tax + shipping)}</span></strong>
-      <button type="button" className="primary-button full" onClick={onAction}>{button}</button>
+      <button type={buttonType} className="primary-button full" onClick={buttonType === "submit" ? undefined : onAction} disabled={disabled}>{button}</button>
     </aside>
   );
 }
@@ -348,6 +348,8 @@ export function CheckoutPage(props: CartProps) {
   const [confirmedTotal, setConfirmedTotal] = useState<number | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
   const total = review?.total ?? props.subtotal + props.subtotal * 0.18 + shipping;
+  const isPaymentStep = step === "payment";
+  const checkoutButtonLabel = paying ? "Processing..." : isPaymentStep ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order";
   const shippingAddress: AddressPayload | null = address ? { ...address, full_name: customer.full_name, phone: customer.phone, email: customer.email } : null;
   const existingAccount = props.customerAccounts?.some((account) => {
     const emailMatches = Boolean(customer.email) && account.email.toLowerCase() === customer.email.toLowerCase();
@@ -548,7 +550,7 @@ export function CheckoutPage(props: CartProps) {
   return (
     <div>
       <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
-      <main className="checkout-page">
+      <main className={isPaymentStep && !done ? "checkout-page has-payment-cta" : "checkout-page"}>
         <Progress step={step} />
         {done ? <Success total={confirmedTotal ?? total} customer={customer} onCreateCustomer={props.onCreateCustomer} hasAccount={Boolean(props.customerSession)} /> : (
           props.cart.length ? <form className="checkout-grid" onSubmit={submit}>
@@ -558,12 +560,13 @@ export function CheckoutPage(props: CartProps) {
               {step === "address" && <AddressStep address={address} />}
               {step === "payment" && <PaymentStep payment={payment} setPayment={setPayment} review={review} address={shippingAddress} cartProducts={props.cartProducts} coupon={coupon} setCoupon={setCoupon} applyCoupon={() => loadReview(shipping, coupon)} />}
               {error && <p className="form-error">{error}</p>}
+              {isPaymentStep && <PaymentStickyCta total={total} payment={payment} label={checkoutButtonLabel} disabled={paying} />}
               <div className="button-row checkout-actions">
                 {step !== "identity" && <button type="button" className="secondary-button" onClick={goBack}>Back</button>}
-                {step !== "identity" && <button className="primary-button" disabled={paying}>{paying ? "Processing..." : step === "payment" ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order"}</button>}
+                {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
               </div>
             </section>
-            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} tax={review?.tax ?? props.subtotal * 0.18} shipping={review?.shipping_cost ?? shipping} button="Back To Cart" onAction={() => navigate("/cart")} />
+            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} tax={review?.tax ?? props.subtotal * 0.18} shipping={review?.shipping_cost ?? shipping} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} />
           </form> : <Empty title="Your bag is empty" text="Add a tote before starting checkout." action="Shop Totes" onAction={() => navigate("/shop")} />
         )}
       </main>
@@ -743,6 +746,19 @@ function PaymentStep({ payment, setPayment, review, address, cartProducts, coupo
     return { slug: product.slug, name: product.name, image: product.image, variant: `${product.color} | ${product.material}`, qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
   });
   return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong><span>{item.variant}</span><small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="WELCOME10" /></label><button type="button" className="secondary-button" onClick={applyCoupon}>Apply</button></div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><div><span>GST</span><b>{money(review?.tax || 0)}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list">{["Razorpay", "Cash on Delivery"].map((item) => <label className={payment === item ? "choice active" : "choice"} key={item}><input type="radio" name="payment" checked={payment === item} onChange={() => setPayment(item)} /><span><CreditCard /> <strong>{item === "Razorpay" ? "Razorpay (UPI, Card, Wallet)" : item}</strong><small>{item === "Razorpay" ? "Secure online payment" : "Pay when your order arrives"}</small></span><ShieldCheck /></label>)}</div></>;
+}
+
+function PaymentStickyCta({ total, payment, label, disabled }: { total: number; payment: string; label: string; disabled: boolean }) {
+  return (
+    <div className="payment-sticky-cta" aria-live="polite">
+      <div>
+        <span>Total Payable</span>
+        <strong>{money(total)}</strong>
+        <small>{payment === "Razorpay" ? "Secure online checkout" : "Cash on delivery"}</small>
+      </div>
+      <button className="primary-button" disabled={disabled}>{label}</button>
+    </div>
+  );
 }
 
 function Success({ total, customer, onCreateCustomer, hasAccount }: { total: number; customer: { full_name: string; phone: string; email: string }; onCreateCustomer?: (account: CustomerAccount) => void | Promise<void>; hasAccount: boolean }) {

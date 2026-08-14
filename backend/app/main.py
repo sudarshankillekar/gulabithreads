@@ -595,7 +595,7 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
         )
 
     coupon = normalize_coupon(coupon_code)
-    discount = round(subtotal * 0.1, 2) if coupon in {"GULABI10", "WELCOME10"} else 0
+    discount = round(subtotal * 0.1, 2) if coupon in {"NISH10"} else 0
     taxable = max(subtotal - discount, 0)
     tax = round(taxable * 0.18, 2)
     total = round(taxable + tax + shipping_cost, 2)

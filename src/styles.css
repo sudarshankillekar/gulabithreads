@@ -177,6 +177,12 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .summary input { width: 100%; margin-top: 8px; border: 0; border-bottom: 1px solid rgba(130,116,115,.25); background: transparent; padding: 10px 0; outline-color: var(--primary); }
 .summary div, .summary strong { display: flex; justify-content: space-between; margin: 15px 0; color: var(--muted); }
 .summary strong { color: var(--text); font-size: 20px; padding-top: 18px; border-top: 1px solid rgba(123,84,85,.25); }
+.summary-coupon { display: grid !important; gap: 10px; margin: 0 0 22px !important; color: inherit !important; }
+.summary-coupon label { margin-bottom: 0; }
+.summary-coupon .secondary-button { width: 100%; min-height: 42px; padding-inline: 16px; }
+.coupon-message, .coupon-error { margin: 0; font-size: 12px; line-height: 1.45; letter-spacing: 0; text-transform: none; font-weight: 700; }
+.coupon-message { color: var(--primary); }
+.coupon-error { color: var(--danger); }
 .payment-sticky-cta { display: none; }
 .payment-sticky-cta div { display: grid; gap: 3px; min-width: 0; }
 .payment-sticky-cta span, .payment-sticky-cta small { color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 700; }

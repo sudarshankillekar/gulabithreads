@@ -198,6 +198,14 @@ class OtpVerifyRequest(BaseModel):
     purpose: str = "checkout"
 
 
+class PincodeLookup(BaseModel):
+    pincode: str
+    city: str | None = None
+    state: str | None = None
+    exact: bool = False
+    message: str = ""
+
+
 class PricedCart(BaseModel):
     items: list[CartItem]
     subtotal: float

@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import {
   Check,
   CreditCard,
@@ -24,7 +24,7 @@ import { apiRequest } from "../lib/api";
 import { money } from "../lib/format";
 import { discountedProductPrice } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
-import { lookupIndianPincode, normalizePincode } from "../lib/pincode";
+import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
 import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
 import { PriceDisplay } from "../components/PriceDisplay";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
@@ -654,6 +654,7 @@ function AddressStep({ address }: { address: AddressPayload | null }) {
     delivery_instructions: address?.delivery_instructions || "",
   });
   const [pincodeMessage, setPincodeMessage] = useState("");
+  const pincodeLookupId = useRef(0);
 
   useEffect(() => {
     setValues({
@@ -675,6 +676,7 @@ function AddressStep({ address }: { address: AddressPayload | null }) {
   const updatePincode = (value: string) => {
     const pincode = normalizePincode(value);
     const lookup = lookupIndianPincode(pincode);
+    const requestId = ++pincodeLookupId.current;
     setValues((current) => ({
       ...current,
       pincode,
@@ -682,6 +684,19 @@ function AddressStep({ address }: { address: AddressPayload | null }) {
       state: lookup?.state || current.state,
     }));
     setPincodeMessage(pincode.length === 6 ? lookup?.message || "" : "");
+    if (pincode.length !== 6) return;
+    void resolveIndianPincode(pincode).then((resolved) => {
+      if (!resolved || pincodeLookupId.current !== requestId) return;
+      setValues((current) => {
+        if (current.pincode !== pincode) return current;
+        return {
+          ...current,
+          city: resolved.city || current.city,
+          state: resolved.state || current.state,
+        };
+      });
+      setPincodeMessage(resolved.message);
+    });
   };
 
   return (

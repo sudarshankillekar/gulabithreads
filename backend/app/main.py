@@ -23,7 +23,7 @@ import razorpay
 
 from .config import settings
 from .database import close, connect, get_db
-from .models import AdminLogin, AdminSession, AdminSetup, CartItem, Category, CategoryCreate, CategoryOut, CategoryUpdate, CheckoutPriceOut, CheckoutPriceRequest, CustomerGoogleLogin, CustomerLogin, CustomerOut, CustomerPasswordResetConfirm, CustomerPasswordResetRequest, CustomerRegister, CustomerSession, Order, OrderCreate, OrderLineItem, OrderStatus, OrderTrackRequest, OtpRequest, OtpVerifyRequest, PricedCart, Product, RazorpayOrderCreate, RazorpayOrderOut, RazorpayVerifyPayment
+from .models import AdminLogin, AdminSession, AdminSetup, CartItem, Category, CategoryCreate, CategoryOut, CategoryUpdate, CheckoutPriceOut, CheckoutPriceRequest, CustomerGoogleLogin, CustomerLogin, CustomerOut, CustomerPasswordResetConfirm, CustomerPasswordResetRequest, CustomerRegister, CustomerSession, Order, OrderCreate, OrderLineItem, OrderStatus, OrderTrackRequest, OtpRequest, OtpVerifyRequest, PincodeLookup, PricedCart, Product, RazorpayOrderCreate, RazorpayOrderOut, RazorpayVerifyPayment
 from .seed import seed_database
 
 
@@ -143,6 +143,18 @@ def enforce_rate_limit(key: str, limit: int, window_seconds: int) -> None:
         raise HTTPException(status_code=429, detail="Too many attempts. Please wait and try again.")
     recent_hits.append(now)
     rate_limits[key] = recent_hits
+
+
+def normalize_postal_state(state: str, pincode: str) -> str:
+    if pincode.startswith("194"):
+        return "Ladakh"
+    state_names = {
+        "Andaman & Nicobar": "Andaman and Nicobar Islands",
+        "Chattisgarh": "Chhattisgarh",
+        "Jammu & Kashmir": "Jammu and Kashmir",
+        "Pondicherry": "Puducherry",
+    }
+    return state_names.get(state, state)
 
 
 async def ensure_active_category(category_name: str) -> None:
@@ -1222,6 +1234,38 @@ async def send_otp(payload: OtpRequest) -> dict:
 async def verify_otp(payload: OtpVerifyRequest) -> dict:
     enforce_rate_limit(f"otp-verify:{payload.purpose}:{payload.phone}", limit=10, window_seconds=300)
     return {"configured": False, "verified": True, "message": "OTP verification skipped because no provider is configured"}
+
+
+@app.get("/api/pincode/{pincode}", response_model=PincodeLookup)
+async def lookup_pincode(pincode: str) -> dict:
+    normalized = "".join(ch for ch in pincode if ch.isdigit())[:6]
+    if len(normalized) != 6:
+        raise HTTPException(status_code=400, detail="Enter a valid 6-digit Indian pincode")
+    try:
+        async with httpx.AsyncClient(timeout=8, verify=certifi.where()) as client:
+            response = await client.get(f"https://api.postalpincode.in/pincode/{normalized}")
+            response.raise_for_status()
+        payload = response.json()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=503, detail="Pincode lookup is temporarily unavailable") from exc
+    if not isinstance(payload, list) or not payload:
+        raise HTTPException(status_code=404, detail="Pincode not found")
+    result = payload[0]
+    post_offices = result.get("PostOffice") or []
+    if result.get("Status") != "Success" or not post_offices:
+        raise HTTPException(status_code=404, detail="Pincode not found")
+    primary = post_offices[0]
+    city = str(primary.get("District") or primary.get("Block") or primary.get("Name") or "").strip()
+    state = normalize_postal_state(str(primary.get("State") or primary.get("Circle") or "").strip(), normalized)
+    if not city or not state:
+        raise HTTPException(status_code=404, detail="City and state were not found for this pincode")
+    return {
+        "pincode": normalized,
+        "city": city,
+        "state": state,
+        "exact": True,
+        "message": f"Detected {city}, {state}.",
+    }
 
 
 @app.get("/api/customers", response_model=list[CustomerOut])

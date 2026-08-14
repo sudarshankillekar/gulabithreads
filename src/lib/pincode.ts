@@ -1,3 +1,5 @@
+import { apiRequest } from "./api";
+
 type PincodeLocation = {
   city: string;
   state: string;
@@ -16,11 +18,16 @@ const exactPincodeLocations: Record<string, PincodeLocation> = {
   "122001": { city: "Gurugram", state: "Haryana" },
   "141001": { city: "Ludhiana", state: "Punjab" },
   "160001": { city: "Chandigarh", state: "Chandigarh" },
+  "160017": { city: "Chandigarh", state: "Chandigarh" },
+  "171001": { city: "Shimla", state: "Himachal Pradesh" },
+  "190001": { city: "Srinagar", state: "Jammu and Kashmir" },
+  "194101": { city: "Leh", state: "Ladakh" },
   "201301": { city: "Noida", state: "Uttar Pradesh" },
   "226001": { city: "Lucknow", state: "Uttar Pradesh" },
   "248001": { city: "Dehradun", state: "Uttarakhand" },
   "302001": { city: "Jaipur", state: "Rajasthan" },
   "380001": { city: "Ahmedabad", state: "Gujarat" },
+  "396230": { city: "Silvassa", state: "Dadra and Nagar Haveli and Daman and Diu" },
   "400001": { city: "Mumbai", state: "Maharashtra" },
   "400050": { city: "Mumbai", state: "Maharashtra" },
   "400051": { city: "Mumbai", state: "Maharashtra" },
@@ -30,6 +37,7 @@ const exactPincodeLocations: Record<string, PincodeLocation> = {
   "411001": { city: "Pune", state: "Maharashtra" },
   "452001": { city: "Indore", state: "Madhya Pradesh" },
   "462001": { city: "Bhopal", state: "Madhya Pradesh" },
+  "492001": { city: "Raipur", state: "Chhattisgarh" },
   "500001": { city: "Hyderabad", state: "Telangana" },
   "500081": { city: "Hyderabad", state: "Telangana" },
   "520001": { city: "Vijayawada", state: "Andhra Pradesh" },
@@ -43,12 +51,16 @@ const exactPincodeLocations: Record<string, PincodeLocation> = {
   "560076": { city: "Bengaluru", state: "Karnataka" },
   "600001": { city: "Chennai", state: "Tamil Nadu" },
   "600020": { city: "Chennai", state: "Tamil Nadu" },
+  "605001": { city: "Puducherry", state: "Puducherry" },
   "625001": { city: "Madurai", state: "Tamil Nadu" },
   "641001": { city: "Coimbatore", state: "Tamil Nadu" },
   "673001": { city: "Kozhikode", state: "Kerala" },
   "682001": { city: "Kochi", state: "Kerala" },
+  "682555": { city: "Kavaratti", state: "Lakshadweep" },
+  "695001": { city: "Thiruvananthapuram", state: "Kerala" },
   "700001": { city: "Kolkata", state: "West Bengal" },
   "737101": { city: "Gangtok", state: "Sikkim" },
+  "744101": { city: "Port Blair", state: "Andaman and Nicobar Islands" },
   "751001": { city: "Bhubaneswar", state: "Odisha" },
   "781001": { city: "Guwahati", state: "Assam" },
   "791111": { city: "Itanagar", state: "Arunachal Pradesh" },
@@ -133,9 +145,11 @@ const statePrefixes: Record<string, string> = {
 };
 
 const statePrefixExceptions: Record<string, string> = {
+  "194": "Ladakh",
   "396": "Dadra and Nagar Haveli and Daman and Diu",
   "403": "Goa",
   "605": "Puducherry",
+  "6825": "Lakshadweep",
   "737": "Sikkim",
   "744": "Andaman and Nicobar Islands",
   "790": "Arunachal Pradesh",
@@ -169,7 +183,10 @@ export function lookupIndianPincode(value: string): PincodeLookup | null {
     };
   }
 
-  const state = statePrefixExceptions[pincode.slice(0, 3)] || statePrefixes[pincode.slice(0, 2)];
+  const exception = Object.entries(statePrefixExceptions)
+    .sort(([left], [right]) => right.length - left.length)
+    .find(([prefix]) => pincode.startsWith(prefix));
+  const state = exception?.[1] || statePrefixes[pincode.slice(0, 2)];
   if (state) {
     return {
       pincode,
@@ -184,4 +201,18 @@ export function lookupIndianPincode(value: string): PincodeLookup | null {
     exact: false,
     message: "We could not auto-detect this pincode. Please enter city and state manually.",
   };
+}
+
+export async function resolveIndianPincode(value: string): Promise<PincodeLookup | null> {
+  const pincode = normalizePincode(value);
+  if (pincode.length !== 6) return null;
+  const localLookup = lookupIndianPincode(pincode);
+  if (localLookup?.exact && localLookup.city && localLookup.state) return localLookup;
+  try {
+    const lookup = await apiRequest<PincodeLookup>(`/pincode/${pincode}`);
+    if (lookup.city && lookup.state) return lookup;
+  } catch {
+    return localLookup;
+  }
+  return localLookup;
 }

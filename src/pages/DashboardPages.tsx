@@ -6,7 +6,7 @@ import { categories as fallbackCategories, heroImg } from "../data/catalog";
 import { money, slugify } from "../lib/format";
 import { discountedProductPrice, discountPercent } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
-import { lookupIndianPincode, normalizePincode } from "../lib/pincode";
+import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
 import type { Category, CategoryRecord, CustomerRecord, OrderRow, OrderStatus, Product, ProductInput } from "../types";
 
 type AccountSection = "orders" | "wishlist" | "addresses" | "profile";
@@ -126,6 +126,20 @@ function CustomerAddresses() {
         state: lookup?.state || item.state,
       };
     }));
+    if (field !== "pincode") return;
+    const pincode = normalizePincode(value);
+    if (pincode.length !== 6) return;
+    void resolveIndianPincode(pincode).then((lookup) => {
+      if (!lookup) return;
+      setAddresses((items) => items.map((item) => {
+        if (item.id !== id || item.pincode !== lookup.pincode) return item;
+        return {
+          ...item,
+          city: lookup.city || item.city,
+          state: lookup.state || item.state,
+        };
+      }));
+    });
   };
   const addAddress = () => {
     const id = `address-${Date.now()}`;

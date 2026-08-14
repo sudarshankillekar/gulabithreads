@@ -6,6 +6,7 @@ import { categories as fallbackCategories, heroImg } from "../data/catalog";
 import { money, slugify } from "../lib/format";
 import { discountedProductPrice, discountPercent } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
+import { lookupIndianPincode, normalizePincode } from "../lib/pincode";
 import type { Category, CategoryRecord, CustomerRecord, OrderRow, OrderStatus, Product, ProductInput } from "../types";
 
 type AccountSection = "orders" | "wishlist" | "addresses" | "profile";
@@ -113,7 +114,18 @@ function CustomerAddresses() {
   }, [addresses]);
 
   const updateAddress = (id: string, field: keyof SavedAddress, value: string) => {
-    setAddresses((items) => items.map((item) => item.id === id ? { ...item, [field]: value } : item));
+    setAddresses((items) => items.map((item) => {
+      if (item.id !== id) return item;
+      if (field !== "pincode") return { ...item, [field]: value };
+      const pincode = normalizePincode(value);
+      const lookup = lookupIndianPincode(pincode);
+      return {
+        ...item,
+        pincode,
+        city: lookup?.city || item.city,
+        state: lookup?.state || item.state,
+      };
+    }));
   };
   const addAddress = () => {
     const id = `address-${Date.now()}`;
@@ -143,7 +155,7 @@ function CustomerAddresses() {
                 <label className="wide">Address<input value={address.address} onChange={(event) => updateAddress(address.id, "address", event.target.value)} /></label>
                 <label>City<input value={address.city} onChange={(event) => updateAddress(address.id, "city", event.target.value)} /></label>
                 <label>State<input value={address.state} onChange={(event) => updateAddress(address.id, "state", event.target.value)} /></label>
-                <label>Pincode<input value={address.pincode} onChange={(event) => updateAddress(address.id, "pincode", event.target.value)} /></label>
+                <label>Pincode<input value={address.pincode} inputMode="numeric" maxLength={6} onChange={(event) => updateAddress(address.id, "pincode", event.target.value)} /></label>
               </div>
             ) : (
               <div>

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
   Check,
   CreditCard,
@@ -24,6 +24,7 @@ import { apiRequest } from "../lib/api";
 import { money } from "../lib/format";
 import { discountedProductPrice } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
+import { lookupIndianPincode, normalizePincode } from "../lib/pincode";
 import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
 import { PriceDisplay } from "../components/PriceDisplay";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
@@ -502,10 +503,14 @@ export function CheckoutPage(props: CartProps) {
         landmark: String(form.get("landmark") || "").trim(),
         city: String(form.get("city") || "").trim(),
         state: String(form.get("state") || "").trim(),
-        pincode: String(form.get("pincode") || "").trim(),
+        pincode: normalizePincode(String(form.get("pincode") || "")),
         country: String(form.get("country") || "India").trim(),
         delivery_instructions: String(form.get("delivery_instructions") || "").trim(),
       };
+      if (!nextAddress.address || !nextAddress.city || !nextAddress.state || nextAddress.pincode.length !== 6) {
+        setError("Enter address line 1, a valid 6-digit pincode, city, and state.");
+        return;
+      }
       setAddress(nextAddress);
       if (form.get("save_address")) saveCheckoutAddress(nextAddress);
       try {
@@ -638,11 +643,83 @@ function CustomerDetailsStep({ mode, isAuthenticated, customer, onLogin, onCreat
 }
 
 function AddressStep({ address }: { address: AddressPayload | null }) {
-  return <><h1>Delivery Address</h1><p>Where should we deliver your handcrafted piece?</p><div className="form-grid"><LineInput name="address" label="Address Line 1 *" defaultValue={address?.address} required wide /><LineInput name="address_line2" label="Address Line 2" defaultValue={address?.address_line2} wide /><LineInput name="landmark" label="Landmark" defaultValue={address?.landmark} /><LineInput name="pincode" label="Pincode *" defaultValue={address?.pincode} required /><LineInput name="city" label="City *" defaultValue={address?.city} required /><LineInput name="state" label="State *" defaultValue={address?.state} required /><LineInput name="country" label="Country *" defaultValue={address?.country || "India"} required /><LineInput name="delivery_instructions" label="Delivery Instructions" defaultValue={address?.delivery_instructions} wide /></div><label className="checkbox"><input name="save_address" type="checkbox" defaultChecked /> Save this address for faster checkout next time</label></>;
+  const [values, setValues] = useState({
+    address: address?.address || "",
+    address_line2: address?.address_line2 || "",
+    landmark: address?.landmark || "",
+    pincode: normalizePincode(address?.pincode || ""),
+    city: address?.city || "",
+    state: address?.state || "",
+    country: address?.country || "India",
+    delivery_instructions: address?.delivery_instructions || "",
+  });
+  const [pincodeMessage, setPincodeMessage] = useState("");
+
+  useEffect(() => {
+    setValues({
+      address: address?.address || "",
+      address_line2: address?.address_line2 || "",
+      landmark: address?.landmark || "",
+      pincode: normalizePincode(address?.pincode || ""),
+      city: address?.city || "",
+      state: address?.state || "",
+      country: address?.country || "India",
+      delivery_instructions: address?.delivery_instructions || "",
+    });
+  }, [address]);
+
+  const updateField = (field: keyof typeof values, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+  };
+
+  const updatePincode = (value: string) => {
+    const pincode = normalizePincode(value);
+    const lookup = lookupIndianPincode(pincode);
+    setValues((current) => ({
+      ...current,
+      pincode,
+      city: lookup?.city || current.city,
+      state: lookup?.state || current.state,
+    }));
+    setPincodeMessage(pincode.length === 6 ? lookup?.message || "" : "");
+  };
+
+  return (
+    <>
+      <h1>Delivery Address</h1>
+      <p>Where should we deliver your handcrafted piece?</p>
+      <div className="form-grid">
+        <LineInput name="address" label="Address Line 1 *" value={values.address} onChange={(event) => updateField("address", event.target.value)} required wide />
+        <LineInput name="address_line2" label="Address Line 2" value={values.address_line2} onChange={(event) => updateField("address_line2", event.target.value)} wide />
+        <LineInput name="landmark" label="Landmark" value={values.landmark} onChange={(event) => updateField("landmark", event.target.value)} />
+        <LineInput name="pincode" label="Pincode *" value={values.pincode} onChange={(event) => updatePincode(event.target.value)} inputMode="numeric" maxLength={6} autoComplete="postal-code" required />
+        <LineInput name="city" label="City *" value={values.city} onChange={(event) => updateField("city", event.target.value)} autoComplete="address-level2" required />
+        <LineInput name="state" label="State *" value={values.state} onChange={(event) => updateField("state", event.target.value)} autoComplete="address-level1" required />
+        <LineInput name="country" label="Country *" value={values.country} onChange={(event) => updateField("country", event.target.value)} autoComplete="country-name" required />
+        <LineInput name="delivery_instructions" label="Delivery Instructions" value={values.delivery_instructions} onChange={(event) => updateField("delivery_instructions", event.target.value)} wide />
+      </div>
+      {pincodeMessage && <p className="checkout-note compact">{pincodeMessage}</p>}
+      <label className="checkbox"><input name="save_address" type="checkbox" defaultChecked /> Save this address for faster checkout next time</label>
+    </>
+  );
 }
 
-function LineInput({ name, label, wide, required, defaultValue }: { name: string; label: string; wide?: boolean; required?: boolean; defaultValue?: string }) {
-  return <label className={wide ? "line-input wide" : "line-input"}><input name={name} placeholder=" " defaultValue={defaultValue} required={required} /><span>{label}</span></label>;
+type LineInputProps = {
+  name: string;
+  label: string;
+  wide?: boolean;
+  required?: boolean;
+  defaultValue?: string;
+  value?: string;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  inputMode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search";
+  maxLength?: number;
+  autoComplete?: string;
+};
+
+function LineInput({ name, label, wide, required, defaultValue, value, onChange, inputMode, maxLength, autoComplete }: LineInputProps) {
+  const inputProps = value === undefined ? { defaultValue } : { value, onChange };
+  return <label className={wide ? "line-input wide" : "line-input"}><input name={name} placeholder=" " required={required} inputMode={inputMode} maxLength={maxLength} autoComplete={autoComplete} {...inputProps} /><span>{label}</span></label>;
 }
 
 function PaymentStep({ payment, setPayment, review, address, cartProducts, coupon, setCoupon, applyCoupon }: { payment: string; setPayment: (value: string) => void; review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => void }) {

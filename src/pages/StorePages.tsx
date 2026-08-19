@@ -436,14 +436,24 @@ export function CheckoutPage(props: CartProps) {
       setCouponMessage("");
       return null;
     }
+    if (couponCode !== FIRST_ORDER_COUPON) {
+      setCoupon(couponCode);
+      setCouponError(`Coupon ${couponCode} is not valid. Use ${FIRST_ORDER_COUPON} for 10% off your first order.`);
+      setCouponMessage("");
+      return null;
+    }
     setCoupon(couponCode);
     setCouponApplying(true);
     setCouponError("");
     setCouponMessage("");
     try {
       const priced = await loadReview(shipping, couponCode);
-      if (!priced.discount) {
-        setCouponError("This coupon could not be applied to the current order.");
+      if (priced.coupon_code !== couponCode) {
+        setCouponError("This coupon code is not valid.");
+        return null;
+      }
+      if (priced.discount <= 0) {
+        setCouponError("This coupon can only be applied when your order has a payable subtotal.");
         return null;
       }
       setCouponMessage(`${priced.coupon_code} applied. You saved ${money(priced.discount)}.`);
@@ -657,7 +667,7 @@ export function CheckoutPage(props: CartProps) {
                 {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
               </div>
             </section>
-            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={isPaymentStep ? updateCoupon : undefined} onApplyCoupon={isPaymentStep ? applyCoupon : undefined} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />
+            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} />
           </form> : <Empty title="Your bag is empty" text="Add a tote before starting checkout." action="Shop Totes" onAction={() => navigate("/shop")} />
         )}
       </main>

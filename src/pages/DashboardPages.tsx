@@ -479,7 +479,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       <label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label>
       <label>Color<input name="color" placeholder="Blush Rose" defaultValue={editingProduct?.color} /></label><label>Material<input name="material" placeholder="Pebble Leather" defaultValue={editingProduct?.material} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
-        <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
+        <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
         <label>Cover Image URL<input name="image" required placeholder="https://..." value={imageUrl || galleryUrls[0] || ""} onChange={(event) => setCoverImage(event.target.value)} /></label>
         <label className="wide">Gallery URLs<textarea name="gallery" rows={3} placeholder="One image URL per line" value={galleryUrls.join("\n")} onChange={(event) => setGalleryUrls(galleryFromText(event.target.value))} /></label>
         <div className="image-upload-preview">

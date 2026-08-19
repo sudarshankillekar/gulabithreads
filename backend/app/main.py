@@ -29,6 +29,16 @@ from .seed import seed_database
 
 rate_limits: dict[str, list[float]] = {}
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
+PRODUCT_IMAGE_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "image/heic-sequence",
+    "image/heif-sequence",
+}
+PRODUCT_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
 
 
 def strip_id(document: dict) -> dict:
@@ -211,6 +221,22 @@ def ensure_cloudinary_configured() -> None:
 def sign_cloudinary_params(params: dict[str, str | int]) -> str:
     payload = "&".join(f"{key}={params[key]}" for key in sorted(params) if params[key] not in ("", None))
     return hashlib.sha1(f"{payload}{settings.cloudinary_api_secret}".encode("utf-8")).hexdigest()
+
+
+def is_supported_product_image(file: UploadFile) -> bool:
+    content_type = (file.content_type or "").lower()
+    extension = os.path.splitext(file.filename or "")[1].lower()
+    return content_type in PRODUCT_IMAGE_MIME_TYPES or extension in PRODUCT_IMAGE_EXTENSIONS
+
+
+def optimized_cloudinary_url(url: str) -> str:
+    upload_marker = "/image/upload/"
+    if upload_marker not in url:
+        return url
+    prefix, suffix = url.split(upload_marker, 1)
+    if suffix.startswith("f_auto,q_auto/"):
+        return url
+    return f"{prefix}{upload_marker}f_auto,q_auto/{suffix}"
 
 
 def order_items_text(order: Order) -> str:
@@ -1039,9 +1065,8 @@ async def delete_product(slug: str, authorization: str | None = Header(default=N
 async def upload_product_image(file: UploadFile = File(...), authorization: str | None = Header(default=None)) -> dict:
     await require_admin(authorization)
     ensure_cloudinary_configured()
-    allowed_types = {"image/jpeg", "image/png", "image/webp"}
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=415, detail="Upload a JPG, PNG, or WebP image")
+    if not is_supported_product_image(file):
+        raise HTTPException(status_code=415, detail="Upload a JPG, PNG, WebP, HEIC, or HEIF image")
     contents = await file.read()
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Image must be 5MB or smaller")
@@ -1063,13 +1088,15 @@ async def upload_product_image(file: UploadFile = File(...), authorization: str 
         response = await client.post(
             upload_url,
             data=form_data,
-            files={"file": (file.filename or "product-image", contents, file.content_type)},
+            files={"file": (file.filename or "product-image", contents, file.content_type or "application/octet-stream")},
         )
     if response.status_code >= 400:
         raise HTTPException(status_code=502, detail=f"Cloudinary upload failed: {response.text}")
     payload = response.json()
+    secure_url = payload["secure_url"]
     return {
-        "secure_url": payload["secure_url"],
+        "secure_url": optimized_cloudinary_url(secure_url),
+        "original_secure_url": secure_url,
         "public_id": payload["public_id"],
         "width": payload.get("width"),
         "height": payload.get("height"),

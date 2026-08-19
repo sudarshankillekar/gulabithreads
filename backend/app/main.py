@@ -269,7 +269,6 @@ def order_email_body(order: Order) -> str:
         f"Order summary:\n{order_items_text(order)}\n\n"
         f"Subtotal: ₹{order.subtotal:,.0f}\n"
         f"Discount: ₹{order.discount:,.0f}\n"
-        f"GST: ₹{order.tax:,.0f}\n"
         f"Shipping: ₹{order.shipping_cost:,.0f}\n"
         f"Total payable: ₹{order.total:,.0f}\n"
         f"Payment method: {order.payment_method or 'Not specified'}\n"
@@ -309,7 +308,6 @@ def admin_order_email_body(order: Order) -> str:
         f"Order summary:\n{order_items_text(order)}\n\n"
         f"Subtotal: ₹{order.subtotal:,.0f}\n"
         f"Discount: ₹{order.discount:,.0f}\n"
-        f"GST: ₹{order.tax:,.0f}\n"
         f"Shipping: ₹{order.shipping_cost:,.0f}\n"
         f"Total payable: ₹{order.total:,.0f}\n"
         f"Payment method: {order.payment_method or 'Not specified'}\n"
@@ -627,9 +625,9 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
     if coupon and coupon not in VALID_COUPONS:
         raise HTTPException(status_code=400, detail="Invalid coupon code. Use NISH10 for 10% off your first order.")
     discount = round(subtotal * 0.1, 2) if coupon in VALID_COUPONS else 0
-    taxable = max(subtotal - discount, 0)
-    tax = round(taxable * 0.18, 2)
-    total = round(taxable + tax + shipping_cost, 2)
+    payable_subtotal = max(subtotal - discount, 0)
+    tax = 0.0
+    total = round(payable_subtotal + shipping_cost, 2)
     return CheckoutPriceOut(items=line_items, subtotal=subtotal, discount=discount, coupon_code=coupon, shipping_cost=shipping_cost, tax=tax, total=total, estimated_delivery_date=estimated_delivery_label())
 
 

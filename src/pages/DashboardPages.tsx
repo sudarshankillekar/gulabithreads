@@ -830,7 +830,6 @@ function downloadInvoice(order: OrderRow, products: Product[]) {
     <section class="totals">
       <div><span>Subtotal</span><span>${money(order.subtotal || items.reduce((sum, item) => sum + item.total, 0))}</span></div>
       <div><span>Shipping</span><span>${money(order.shipping_cost || 0)}</span></div>
-      <div><span>Tax</span><span>${money(order.tax || 0)}</span></div>
       <div class="total"><span>Total</span><span>${money(order.total)}</span></div>
     </section>
     <p>Payment: ${escapeInvoiceText(order.payment_method || "Not recorded")}<br />Shipping method: ${escapeInvoiceText(order.shipping_method || "Not recorded")}</p>
@@ -877,7 +876,7 @@ function OrderDetailRow({ order, products }: { order: OrderRow; products: Produc
           </section>
           <section>
             <h3>Totals</h3>
-            <p>Subtotal: {money(order.subtotal || order.total)}<br />Tax: {money(order.tax || 0)}<br />Shipping: {money(order.shipping_cost || 0)}<br /><strong>Total: {money(order.total)}</strong></p>
+            <p>Subtotal: {money(order.subtotal || order.total)}<br />Shipping: {money(order.shipping_cost || 0)}<br /><strong>Total: {money(order.total)}</strong></p>
           </section>
         </div>
       </td>

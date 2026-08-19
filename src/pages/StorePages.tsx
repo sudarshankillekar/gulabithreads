@@ -297,7 +297,6 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
 }
 
 export function CartPage(props: CartProps) {
-  const tax = props.subtotal * 0.18;
   return (
     <div>
       <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
@@ -320,7 +319,7 @@ export function CartPage(props: CartProps) {
                 </article>
               ))}
             </section>
-            <OrderSummary subtotal={props.subtotal} tax={tax} button="Proceed To Checkout" onAction={() => navigate("/checkout")} />
+            <OrderSummary subtotal={props.subtotal} button="Proceed To Checkout" onAction={() => navigate("/checkout")} />
           </div>
         ) : <Empty title="Your bag is empty" text="Start with a tote from the latest collection." action="Shop Totes" onAction={() => navigate("/shop")} />}
       </main>
@@ -331,7 +330,6 @@ export function CartPage(props: CartProps) {
 
 type OrderSummaryProps = {
   subtotal: number;
-  tax: number;
   shipping?: number;
   discount?: number;
   total?: number;
@@ -347,8 +345,8 @@ type OrderSummaryProps = {
   couponApplying?: boolean;
 };
 
-function OrderSummary({ subtotal, tax, shipping = 0, discount = 0, total, button, onAction, buttonType = "button", disabled = false, coupon = "", setCoupon, onApplyCoupon, couponMessage = "", couponError = "", couponApplying = false }: OrderSummaryProps) {
-  const payable = total ?? Math.max(subtotal - discount, 0) + tax + shipping;
+function OrderSummary({ subtotal, shipping = 0, discount = 0, total, button, onAction, buttonType = "button", disabled = false, coupon = "", setCoupon, onApplyCoupon, couponMessage = "", couponError = "", couponApplying = false }: OrderSummaryProps) {
+  const payable = total ?? Math.max(subtotal - discount, 0) + shipping;
   return (
     <aside className="summary">
       <h3>Order Summary</h3>
@@ -363,7 +361,6 @@ function OrderSummary({ subtotal, tax, shipping = 0, discount = 0, total, button
       <div><span>Subtotal</span><span>{money(subtotal)}</span></div>
       {discount > 0 && <div><span>Discount</span><span>-{money(discount)}</span></div>}
       <div><span>Shipping</span><span>{shipping ? money(shipping) : "FREE"}</span></div>
-      <div><span>GST (18%)</span><span>{money(tax)}</span></div>
       <strong><span>Total</span><span>{money(payable)}</span></strong>
       <button type={buttonType} className="primary-button full" onClick={buttonType === "submit" ? undefined : onAction} disabled={disabled}>{button}</button>
     </aside>
@@ -388,7 +385,7 @@ export function CheckoutPage(props: CartProps) {
   const [paying, setPaying] = useState(false);
   const [confirmedTotal, setConfirmedTotal] = useState<number | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
-  const total = review?.total ?? props.subtotal + props.subtotal * 0.18 + shipping;
+  const total = review?.total ?? props.subtotal + shipping;
   const isPaymentStep = step === "payment";
   const checkoutButtonLabel = paying ? "Processing..." : isPaymentStep ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order";
   const shippingAddress: AddressPayload | null = address ? { ...address, full_name: customer.full_name, phone: customer.phone, email: customer.email } : null;
@@ -417,8 +414,7 @@ export function CheckoutPage(props: CartProps) {
     if (review?.coupon_code && normalizeCouponInput(nextCoupon) !== review.coupon_code) {
       setReview((current) => {
         if (!current?.coupon_code) return current;
-        const tax = roundCurrency(current.subtotal * 0.18);
-        return { ...current, discount: 0, coupon_code: "", tax, total: roundCurrency(current.subtotal + current.shipping_cost + tax) };
+        return { ...current, discount: 0, coupon_code: "", tax: 0, total: roundCurrency(current.subtotal + current.shipping_cost) };
       });
     }
   };
@@ -661,7 +657,7 @@ export function CheckoutPage(props: CartProps) {
                 {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
               </div>
             </section>
-            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} tax={review?.tax ?? props.subtotal * 0.18} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={isPaymentStep ? updateCoupon : undefined} onApplyCoupon={isPaymentStep ? applyCoupon : undefined} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />
+            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={isPaymentStep ? updateCoupon : undefined} onApplyCoupon={isPaymentStep ? applyCoupon : undefined} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />
           </form> : <Empty title="Your bag is empty" text="Add a tote before starting checkout." action="Shop Totes" onAction={() => navigate("/shop")} />
         )}
       </main>
@@ -840,7 +836,7 @@ function PaymentStep({ payment, setPayment, review, address, cartProducts, coupo
     const unitPrice = discountedProductPrice(product);
     return { slug: product.slug, name: product.name, image: product.image, variant: `${product.color} | ${product.material}`, qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
   });
-  return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong><span>{item.variant}</span><small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder={FIRST_ORDER_COUPON} /></label><button type="button" className="secondary-button" onClick={applyCoupon} disabled={couponApplying}>{couponApplying ? "Applying..." : "Apply"}</button>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{couponError && <p className="coupon-error">{couponError}</p>}</div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><div><span>GST</span><b>{money(review?.tax || 0)}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list">{["Razorpay", "Cash on Delivery"].map((item) => <label className={payment === item ? "choice active" : "choice"} key={item}><input type="radio" name="payment" checked={payment === item} onChange={() => setPayment(item)} /><span><CreditCard /> <strong>{item === "Razorpay" ? "Razorpay (UPI, Card, Wallet)" : item}</strong><small>{item === "Razorpay" ? "Secure online payment" : "Pay when your order arrives"}</small></span><ShieldCheck /></label>)}</div></>;
+  return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong><span>{item.variant}</span><small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder={FIRST_ORDER_COUPON} /></label><button type="button" className="secondary-button" onClick={applyCoupon} disabled={couponApplying}>{couponApplying ? "Applying..." : "Apply"}</button>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{couponError && <p className="coupon-error">{couponError}</p>}</div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list">{["Razorpay", "Cash on Delivery"].map((item) => <label className={payment === item ? "choice active" : "choice"} key={item}><input type="radio" name="payment" checked={payment === item} onChange={() => setPayment(item)} /><span><CreditCard /> <strong>{item === "Razorpay" ? "Razorpay (UPI, Card, Wallet)" : item}</strong><small>{item === "Razorpay" ? "Secure online payment" : "Pay when your order arrives"}</small></span><ShieldCheck /></label>)}</div></>;
 }
 
 function PaymentStickyCta({ total, payment, label, disabled }: { total: number; payment: string; label: string; disabled: boolean }) {

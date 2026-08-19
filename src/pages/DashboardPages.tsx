@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import { BarChart3, Bell, CreditCard, Download, Eye, Heart, Home, LayoutDashboard, LogOut, MapPin, Menu, Package, PackageCheck, Pencil, Plus, Search, Settings, ShoppingBag, Tags, Trash2, Upload, User, Warehouse } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { PriceDisplay } from "../components/PriceDisplay";
-import { categories as fallbackCategories, heroImg } from "../data/catalog";
+import { categories as fallbackCategories } from "../data/catalog";
 import { money, slugify } from "../lib/format";
 import { discountedProductPrice, discountPercent } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
@@ -362,9 +362,12 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     const formElement = event.currentTarget;
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "").trim();
-    const fallbackImage = products[0]?.image || heroImg;
-    const image = String(form.get("image") || imageUrl || galleryUrls[0] || fallbackImage).trim();
+    const image = String(form.get("image") || imageUrl || galleryUrls[0] || "").trim();
     const gallery = uniqueImageUrls([image, ...galleryUrls, ...galleryFromText(String(form.get("gallery") || ""))]);
+    if (!image) {
+      setError("Upload at least one product photo or enter a cover image URL.");
+      return;
+    }
     const payload = {
       slug: slugify(String(form.get("slug") || name)),
       name,
@@ -398,10 +401,9 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   };
   const startCreate = () => {
     const isCreating = showForm && !editingProduct;
-    const fallbackImage = products[0]?.image || heroImg;
     setEditingProduct(null);
-    setImageUrl(fallbackImage);
-    setGalleryUrls([fallbackImage]);
+    setImageUrl("");
+    setGalleryUrls([]);
     setError("");
     setShowForm(!isCreating);
   };
@@ -423,7 +425,6 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   const uploadProductImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
-    const fallbackImage = products[0]?.image || heroImg;
     setUploadingImage(true);
     setError("");
     try {
@@ -436,11 +437,8 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
         });
         return uploaded.secure_url;
       }));
-      setGalleryUrls((current) => {
-        const currentWithoutPlaceholder = current.length === 1 && current[0] === fallbackImage ? [] : current;
-        return uniqueImageUrls([...currentWithoutPlaceholder, ...uploadedUrls]);
-      });
-      setImageUrl((current) => !current || current === fallbackImage ? uploadedUrls[0] : current);
+      setGalleryUrls((current) => uniqueImageUrls([...current, ...uploadedUrls]));
+      setImageUrl((current) => current || uploadedUrls[0]);
     } catch (exc) {
       setError(exc instanceof Error ? exc.message : "Could not upload images");
     } finally {
@@ -482,7 +480,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       <label>Color<input name="color" placeholder="Blush Rose" defaultValue={editingProduct?.color} /></label><label>Material<input name="material" placeholder="Pebble Leather" defaultValue={editingProduct?.material} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
         <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
-        <label>Cover Image URL<input name="image" required placeholder="https://..." value={imageUrl || galleryUrls[0] || editingProduct?.image || products[0]?.image || heroImg} onChange={(event) => setCoverImage(event.target.value)} /></label>
+        <label>Cover Image URL<input name="image" required placeholder="https://..." value={imageUrl || galleryUrls[0] || ""} onChange={(event) => setCoverImage(event.target.value)} /></label>
         <label className="wide">Gallery URLs<textarea name="gallery" rows={3} placeholder="One image URL per line" value={galleryUrls.join("\n")} onChange={(event) => setGalleryUrls(galleryFromText(event.target.value))} /></label>
         <div className="image-upload-preview">
           {galleryUrls.map((url) => (

@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, LogOut, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { GulabiLogo } from "../components/GulabiLogo";
 import { productImg } from "../data/catalog";
 import { navigate } from "../lib/navigation";
 import type { AuthSession, CustomerAccount } from "../types";
@@ -260,10 +261,8 @@ export function LoginPage({
         <img src={visualImage} alt={isAdmin ? "Admin product management workspace" : "Gulabi Threads handmade bags and pouches login visual"} />
         {isAdmin && (
           <>
-            <button className="auth-brand auth-logo-mark" onClick={() => navigate("/")} aria-label="Go to Gulabi Threads home">
-              <span className="auth-logo-symbol" aria-hidden="true" />
-              <strong>Gulabi</strong>
-              <small>Threads</small>
+            <button className="auth-brand" onClick={() => navigate("/")} aria-label="Go to Gulabi Threads home">
+              <GulabiLogo />
             </button>
             <div className="auth-visual-copy">
               <h1>Manage the Atelier</h1>
@@ -274,11 +273,7 @@ export function LoginPage({
       </section>
       <section className="auth-panel" aria-label={isAdmin ? "Admin login" : "Customer login"}>
         <form className="auth-card" onSubmit={submit}>
-          <div className="auth-card-brand auth-logo-mark">
-            <span className="auth-logo-symbol" aria-hidden="true" />
-            <strong>Gulabi</strong>
-            <small>Threads</small>
-          </div>
+          <GulabiLogo className="auth-card-brand" />
           <h2>{title}</h2>
           <p className="auth-card-intro">{isAdmin ? "Sign in to manage catalog, inventory, and orders." : authMode === "create" ? "Create your account to save addresses and track orders faster." : authMode === "forgot" ? "Enter your email or phone number and we will send reset instructions." : authMode === "reset" ? "Choose a new password for your Gulabi Threads account." : "Welcome back! Please sign in to your account."}</p>
           {!isAdmin && authMode === "login" && (

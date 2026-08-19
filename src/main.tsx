@@ -89,7 +89,7 @@ function App() {
     if (!adminSession?.token) return;
     apiRequest<OrderRow[]>("/admin/orders").then(setOrderRows).catch(() => setOrderRows([]));
     apiRequest<CustomerRecord[]>("/customers").then(setCustomers).catch(() => setCustomers([]));
-    apiRequest<CategoryRecord[]>("/categories?include_archived=true").then(setCategoryRows).catch(() => undefined);
+    apiRequest<CategoryRecord[]>("/categories").then(setCategoryRows).catch(() => undefined);
   }, [adminSession, setAdminSession]);
 
   useEffect(() => {

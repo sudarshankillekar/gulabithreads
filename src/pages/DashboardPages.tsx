@@ -528,21 +528,23 @@ function categoryDefaults(order: number): CategoryFormValues {
 }
 
 function CategoriesManager({ initialCategories }: { initialCategories: CategoryRecord[] }) {
-  const [categories, setCategories] = useState<CategoryRecord[]>(initialCategories);
+  const activeCategories = initialCategories.filter((category) => !category.archived);
+  const [categories, setCategories] = useState<CategoryRecord[]>(activeCategories);
   const [editing, setEditing] = useState<CategoryRecord | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<CategoryFormValues>(categoryDefaults(initialCategories.length + 1));
-  const activeCount = categories.filter((category) => category.active && !category.archived).length;
-  const archivedCount = categories.filter((category) => category.archived).length;
+  const [form, setForm] = useState<CategoryFormValues>(categoryDefaults(activeCategories.length + 1));
+  const visibleCategories = categories.filter((category) => !category.archived);
+  const activeCount = visibleCategories.filter((category) => category.active).length;
+  const inactiveCount = visibleCategories.length - activeCount;
 
   useEffect(() => {
-    setCategories(initialCategories);
+    setCategories(initialCategories.filter((category) => !category.archived));
   }, [initialCategories]);
 
   const refresh = async () => {
-    const rows = await apiRequest<CategoryRecord[]>("/categories?include_archived=true");
+    const rows = await apiRequest<CategoryRecord[]>("/categories");
     setCategories(rows);
     return rows;
   };
@@ -618,7 +620,7 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
 
   return <>
     <div className="dash-heading"><div><h1>Category Control</h1><p>Manage storefront navigation, product grouping, and active selling categories.</p></div><button className="primary-button" onClick={startCreate}><Plus size={16} /> Add Category</button></div>
-    <div className="metric-grid product-metrics"><Metric icon={<Tags />} label="Total Categories" value={String(categories.length)} /><Metric icon={<PackageCheck />} label="Active" value={String(activeCount)} /><Metric icon={<Package />} label="Archived" value={String(archivedCount)} /><Metric icon={<ShoppingBag />} label="Products Linked" value={String(categories.reduce((sum, category) => sum + category.product_count, 0))} /></div>
+    <div className="metric-grid product-metrics"><Metric icon={<Tags />} label="Total Categories" value={String(visibleCategories.length)} /><Metric icon={<PackageCheck />} label="Active" value={String(activeCount)} /><Metric icon={<Package />} label="Inactive" value={String(inactiveCount)} /><Metric icon={<ShoppingBag />} label="Products Linked" value={String(visibleCategories.reduce((sum, category) => sum + category.product_count, 0))} /></div>
     {error && <p className="form-error standalone">{error}</p>}
     {showForm && <form className="admin-product-form" onSubmit={submit}>
       <div className="form-section-title"><h2>{editing ? "Edit Category" : "Add Category"}</h2><p>Categories drive storefront filters, product forms, and admin catalog grouping.</p></div>
@@ -632,7 +634,7 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
       <label className="check-label"><input type="checkbox" checked={form.active} onChange={(event) => updateField("active", event.target.checked)} /> Active category</label>
       <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setShowForm(false)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : editing ? "Update Category" : "Save Category"}</button></div>
     </form>}
-    <div className="data-table"><table><thead><tr><th>Category</th><th>Slug</th><th>Products</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>{categories.map((category) => <tr key={category.slug}><td><strong>{category.name}</strong><small>{category.description || "No description"}</small></td><td>{category.slug}</td><td>{category.product_count}</td><td>{category.display_order}</td><td><Status status={category.archived ? "Archived" : category.active ? "Approved" : "Inactive"} /></td><td><div className="table-actions"><button aria-label={`Edit ${category.name}`} onClick={() => startEdit(category)}><Pencil size={16} /></button><button aria-label={`${category.active ? "Disable" : "Enable"} ${category.name}`} disabled={category.archived} onClick={() => toggleStatus(category)}><Eye size={16} /></button><button aria-label={`Archive ${category.name}`} disabled={category.archived || category.product_count > 0} onClick={() => archiveCategory(category)}><Trash2 size={16} /></button></div></td></tr>)}</tbody></table></div>
+    <div className="data-table"><table><thead><tr><th>Category</th><th>Slug</th><th>Products</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>{visibleCategories.map((category) => <tr key={category.slug}><td><strong>{category.name}</strong><small>{category.description || "No description"}</small></td><td>{category.slug}</td><td>{category.product_count}</td><td>{category.display_order}</td><td><Status status={category.active ? "Approved" : "Inactive"} /></td><td><div className="table-actions"><button aria-label={`Edit ${category.name}`} onClick={() => startEdit(category)}><Pencil size={16} /></button><button aria-label={`${category.active ? "Disable" : "Enable"} ${category.name}`} onClick={() => toggleStatus(category)}><Eye size={16} /></button><button aria-label={`Archive ${category.name}`} disabled={category.product_count > 0} onClick={() => archiveCategory(category)}><Trash2 size={16} /></button></div></td></tr>)}</tbody></table></div>
   </>;
 }
 

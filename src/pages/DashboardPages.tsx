@@ -80,7 +80,6 @@ function CustomerWishlist({ products, addCart, toggleWish }: { products: Product
               </button>
               <div>
                 <button className="account-wishlist-name" onClick={() => navigate(`/product/${product.slug}`)}>{product.name}</button>
-                <p>{product.color} | {product.material}</p>
                 <PriceDisplay product={product} />
               </div>
               <div className="account-wishlist-actions">
@@ -372,10 +371,10 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       slug: slugify(String(form.get("slug") || name)),
       name,
       price: Number(form.get("price") || 0),
-      discount_percent: Number(form.get("discount_percent") || 0),
+      discount_price: Number(form.get("discount_price") || 0),
       category: String(form.get("category") || availableCategories[0]) as Category,
-      color: String(form.get("color") || "Blush Rose"),
-      material: String(form.get("material") || "Pebble Leather"),
+      color: "",
+      material: "",
       rating: Number(form.get("rating") || 4),
       stock: Number(form.get("stock") || 0),
       badge: String(form.get("badge") || "") || undefined,
@@ -475,9 +474,8 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     {admin && showForm && <form className="admin-product-form" key={editingProduct?.slug || "create"} onSubmit={submit}>
       <div className="form-section-title"><h2>{editingProduct ? "Edit Product" : "Add Product"}</h2><p>{editingProduct ? "Update product details in MongoDB and refresh the storefront immediately." : "New products are saved through the Python API into MongoDB."}</p></div>
       <label>Name<input name="name" required placeholder="The Jaipur Market Tote" defaultValue={editingProduct?.name} /></label><label>Slug<input name="slug" placeholder="jaipur-market-tote" defaultValue={editingProduct?.slug} /></label><label>Category<select name="category" defaultValue={editingProduct?.category || availableCategories[0]}>{availableCategories.map((category) => <option key={category}>{category}</option>)}</select></label>
-      <label>Original Price<input name="price" required type="number" min="0" step="1" placeholder="999" defaultValue={editingProduct?.price} /></label><label>Discount %<input name="discount_percent" type="number" min="0" max="99" step="1" placeholder="47" defaultValue={editingProduct?.discount_percent || 0} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label>
-      <label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label>
-      <label>Color<input name="color" placeholder="Blush Rose" defaultValue={editingProduct?.color} /></label><label>Material<input name="material" placeholder="Pebble Leather" defaultValue={editingProduct?.material} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
+      <label>Original Price<input name="price" required type="number" min="0" step="1" placeholder="999" defaultValue={editingProduct?.price} /></label><label>Discount Price<input name="discount_price" type="number" min="0" step="1" placeholder="526" defaultValue={editingProduct?.discount_price || ""} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label>
+      <label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
         <label>Product Photos<input type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" multiple onChange={uploadProductImage} disabled={uploadingImage} /></label>
         <label>Cover Image URL<input name="image" required placeholder="https://..." value={imageUrl || galleryUrls[0] || ""} onChange={(event) => setCoverImage(event.target.value)} /></label>
@@ -762,7 +760,7 @@ function orderLineItems(order: OrderRow, products: Product[]) {
       const unitPrice = product?.price ?? Math.round((order.subtotal || order.total) / Math.max(1, order.items?.reduce((sum, row) => sum + row.qty, 0) || 1));
       return {
         name: product?.name || item.slug,
-        variant: product ? [product.color, product.material].filter(Boolean).join(" | ") : "",
+        variant: "",
         qty: item.qty,
         unitPrice,
         total: unitPrice * item.qty,
@@ -804,7 +802,6 @@ function downloadInvoice(order: OrderRow, products: Product[]) {
     <section class="top">
       <div>
         <h1>Gulabi Threads</h1>
-        <p>Crafted with love</p>
       </div>
       <div class="meta">
         <strong>Invoice</strong><br />

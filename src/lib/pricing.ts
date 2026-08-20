@@ -1,15 +1,24 @@
 import type { Product } from "../types";
 
-export function discountPercent(product: Pick<Product, "discount_percent">) {
+type PricedProduct = Pick<Product, "price" | "discount_price" | "discount_percent">;
+
+export function discountedProductPrice(product: PricedProduct) {
+  const price = Number(product.price || 0);
+  const discountPrice = Number(product.discount_price || 0);
+  if (Number.isFinite(discountPrice) && discountPrice > 0 && discountPrice < price) {
+    return Math.round(discountPrice);
+  }
   const percent = Number(product.discount_percent || 0);
   if (!Number.isFinite(percent)) return 0;
-  return Math.min(99, Math.max(0, Math.round(percent)));
+  const safePercent = Math.min(99, Math.max(0, percent));
+  return Math.round(price * (100 - safePercent) / 100);
 }
 
-export function discountedProductPrice(product: Pick<Product, "price" | "discount_percent">) {
-  const percent = discountPercent(product);
-  if (!percent) return product.price;
-  return Math.round(product.price * (100 - percent) / 100);
+export function discountPercent(product: PricedProduct) {
+  const price = Number(product.price || 0);
+  const current = discountedProductPrice(product);
+  if (!price || current >= price) return 0;
+  return Math.max(0, Math.round(((price - current) / price) * 100));
 }
 
 export function rupeeText(value: number) {

@@ -51,10 +51,21 @@ def normalize_product_document(document: dict) -> dict:
     image = str(product.get("image") or "").strip()
     gallery = [str(url).strip() for url in product.get("gallery", []) if str(url).strip()]
     try:
-        discount_percent = float(product.get("discount_percent", 0) or 0)
+        price = float(product.get("price", 0) or 0)
     except (TypeError, ValueError):
-        discount_percent = 0
-    product["discount_percent"] = max(0, min(99, round(discount_percent)))
+        price = 0
+    try:
+        discount_price = float(product.get("discount_price", 0) or 0)
+    except (TypeError, ValueError):
+        discount_price = 0
+    if not discount_price:
+        try:
+            discount_percent = float(product.get("discount_percent", 0) or 0)
+        except (TypeError, ValueError):
+            discount_percent = 0
+        discount_percent = max(0, min(99, discount_percent))
+        discount_price = round(price * (100 - discount_percent) / 100) if discount_percent else 0
+    product["discount_price"] = max(0, min(price, round(discount_price)))
     ordered_gallery = []
     for url in [image, *gallery]:
         if url and url not in ordered_gallery:
@@ -71,11 +82,19 @@ def discounted_unit_price(product: dict) -> float:
     except (TypeError, ValueError):
         price = 0
     try:
+        discount_price = float(product.get("discount_price", 0) or 0)
+    except (TypeError, ValueError):
+        discount_price = 0
+    if discount_price > 0 and discount_price < price:
+        return float(round(discount_price))
+    try:
         discount_percent = float(product.get("discount_percent", 0) or 0)
     except (TypeError, ValueError):
         discount_percent = 0
-    discount_percent = max(0, min(99, discount_percent))
-    return float(round(price * (100 - discount_percent) / 100))
+    if discount_percent > 0:
+        discount_percent = max(0, min(99, discount_percent))
+        return float(round(price * (100 - discount_percent) / 100))
+    return float(round(price))
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -275,7 +294,6 @@ def order_email_body(order: Order) -> str:
         f"Estimated delivery: {order.estimated_delivery_date or '3-5 business days'}\n\n"
         f"Delivery address:\n{address_text}\n\n"
         f"Track your order: {order_tracking_url(order)}\n\n"
-        "Crafted with love,\n"
         "Gulabi Threads"
     )
 
@@ -342,7 +360,6 @@ def order_status_email_body(order: Order, previous_status: str) -> str:
         f"Order total: ₹{order.total:,.0f}\n\n"
         f"Order summary:\n{order_items_text(order)}\n\n"
         f"Track your order: {order_tracking_url(order)}\n\n"
-        "Crafted with love,\n"
         "Gulabi Threads"
     )
 
@@ -557,7 +574,6 @@ async def send_password_reset_email(customer: dict, token: str) -> dict:
         "We received a request to reset your Gulabi Threads password.\n\n"
         f"Reset your password here: {reset_url}\n\n"
         "This link expires in 30 minutes. If you did not request this, you can ignore this email.\n\n"
-        "Crafted with love,\n"
         "Gulabi Threads"
     )
     try:
@@ -614,7 +630,7 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
                 slug=item.slug,
                 name=product["name"],
                 image=product["image"],
-                variant=f"{product.get('color', 'Standard')} | {product.get('material', 'Handcrafted')}",
+                variant="",
                 qty=item.qty,
                 unit_price=unit_price,
                 line_total=line_total,

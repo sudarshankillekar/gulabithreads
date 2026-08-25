@@ -185,7 +185,7 @@ function ProductCard({ product, wishlist, addCart, toggleWish }: { product: Prod
   return (
     <article className="product-card">
       <button className="product-image" onClick={() => navigate(`/product/${product.slug}`)}>
-        {product.badge && <span className="badge">{product.badge}</span>}
+        {!inStock ? <span className="stock-badge">Out of stock</span> : product.badge && <span className="badge">{product.badge}</span>}
         <img src={product.image} alt={product.name} />
       </button>
       <button className="wish" aria-label={wished ? "Remove from wishlist" : "Add to wishlist"} onClick={() => toggleWish(product.slug)}>
@@ -275,7 +275,10 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
         <nav className="breadcrumbs"><button onClick={() => navigate("/")}>Home</button>/<button onClick={() => navigate("/shop")}>Accessories</button>/<span>{product.name}</span></nav>
         <section className="detail-grid">
           <div className="gallery">
-            <img src={image} alt={product.name} />
+            <div className="gallery-main">
+              {product.stock <= 0 && <span className="stock-badge">Out of stock</span>}
+              <img src={image} alt={product.name} />
+            </div>
             {galleryImages.length > 1 && <div>{galleryImages.map((src) => <button className={image === src ? "active" : ""} key={src} onClick={() => setImage(src)}><img src={src} alt="" /></button>)}</div>}
           </div>
           <aside className="buy-panel">

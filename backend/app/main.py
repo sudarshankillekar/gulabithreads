@@ -193,25 +193,29 @@ async def ensure_active_category(category_name: str) -> None:
 
 
 def customer_key(name: str, phone: str | None = None, email: str | None = None) -> str:
-    if email:
-        return f"email:{email.lower()}"
-    if phone:
-        return f"phone:{phone}"
+    normalized_email = str(email or "").strip().lower()
+    normalized_phone = "".join(ch for ch in str(phone or "") if ch.isdigit())
+    if normalized_email:
+        return f"email:{normalized_email}"
+    if normalized_phone:
+        return f"phone:{normalized_phone}"
     return f"name:{name.strip().lower()}"
 
 
 async def upsert_customer_from_order(order: Order) -> None:
     if order.address is None:
         return
-    key = customer_key(order.address.full_name, order.address.phone)
+    email = order.customer_email or order.address.email
+    phone = order.customer_phone or order.address.phone
+    key = customer_key(order.address.full_name, phone, email)
     await get_db().customers.update_one(
         {"key": key},
         {
             "$set": {
                 "key": key,
                 "name": order.address.full_name,
-                "phone": order.address.phone,
-                "email": order.customer_email or order.address.email,
+                "phone": phone,
+                "email": email,
                 "city": order.address.city,
                 "state": order.address.state,
                 "status": "Active",
@@ -1320,29 +1324,39 @@ async def list_customers(authorization: str | None = Header(default=None)) -> li
     db = get_db()
     profiles: dict[str, dict] = {}
     customers: dict[str, dict] = {}
-    async for document in db.customers.find({}):
+    def add_profile(document: dict) -> None:
         document = strip_id(document)
-        key = document.get("key") or customer_key(document.get("name", "Customer"), document.get("phone"), document.get("email"))
+        name = document.get("name") or "Customer"
+        email = document.get("email")
+        phone = document.get("phone")
+        key = document.get("key") or customer_key(name, phone, email)
         profiles[key] = {
-            "name": document.get("name", "Customer"),
-            "email": document.get("email"),
-            "phone": document.get("phone"),
+            "name": name,
+            "email": email,
+            "phone": phone,
             "city": document.get("city"),
             "state": document.get("state"),
             "status": document.get("status", "Active"),
         }
 
+    async for document in db.customers.find({}):
+        add_profile(document)
+
+    async for document in db.customer_accounts.find({}):
+        add_profile(document)
+
     async for order in db.orders.find({}).sort("_id", 1):
         address = order.get("address") or {}
         name = address.get("full_name") or order.get("customer") or "Guest Customer"
-        phone = address.get("phone")
-        key = customer_key(name, phone)
+        phone = order.get("customer_phone") or address.get("phone")
+        email = order.get("customer_email") or address.get("email")
+        key = customer_key(name, phone, email)
         profile = profiles.get(key, {})
         row = customers.setdefault(
             key,
             {
                 "name": profile.get("name") or name,
-                "email": profile.get("email"),
+                "email": profile.get("email") or email,
                 "phone": phone,
                 "city": profile.get("city") or address.get("city"),
                 "state": profile.get("state") or address.get("state"),

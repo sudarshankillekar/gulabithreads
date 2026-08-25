@@ -647,25 +647,61 @@ function InventoryManager({ products }: { products: Product[] }) {
   </>;
 }
 
+function deriveCustomersFromOrders(orders: OrderRow[]): CustomerRecord[] {
+  const rows = new Map<string, CustomerRecord>();
+  orders.forEach((order) => {
+    const address = order.address;
+    const email = (order.customer_email || address?.email || "").trim().toLowerCase();
+    const phone = (order.customer_phone || address?.phone || "").trim();
+    const name = (address?.full_name || order.customer || "Guest Customer").trim();
+    const key = email || phone || name.toLowerCase();
+    const current = rows.get(key) || {
+      name,
+      email: email || null,
+      phone: phone || null,
+      city: address?.city || null,
+      state: address?.state || null,
+      status: "Active",
+      order_count: 0,
+      lifetime_spend: 0,
+      last_order_id: null,
+      last_order_date: null,
+    };
+    current.name = current.name === "Guest Customer" && name !== "Guest Customer" ? name : current.name;
+    current.email = current.email || email || null;
+    current.phone = current.phone || phone || null;
+    current.city = current.city || address?.city || null;
+    current.state = current.state || address?.state || null;
+    current.order_count += 1;
+    current.lifetime_spend += Number(order.total || 0);
+    current.last_order_id = order.id;
+    current.last_order_date = order.date;
+    rows.set(key, current);
+  });
+  return [...rows.values()].sort((a, b) => String(b.last_order_id || "").localeCompare(String(a.last_order_id || "")));
+}
+
 function CustomersManager({ customers, orders }: { customers: CustomerRecord[]; orders: OrderRow[] }) {
   const [query, setQuery] = useState("");
   const [expandedCustomer, setExpandedCustomer] = useState("");
+  const displayCustomers = customers.length ? customers : deriveCustomersFromOrders(orders);
   const normalized = query.trim().toLowerCase();
-  const filtered = customers.filter((customer) => {
+  const filtered = displayCustomers.filter((customer) => {
     if (!normalized) return true;
     return [customer.name, customer.email, customer.phone, customer.city, customer.state, customer.last_order_id].some((value) => String(value || "").toLowerCase().includes(normalized));
   });
   const customerOrders = (customer: CustomerRecord) => orders.filter((order) => {
     const name = order.address?.full_name || order.customer;
-    const phone = order.address?.phone;
-    return name.trim().toLowerCase() === customer.name.trim().toLowerCase() || (Boolean(phone) && phone === customer.phone);
+    const phone = order.customer_phone || order.address?.phone;
+    const email = order.customer_email || order.address?.email;
+    return name.trim().toLowerCase() === customer.name.trim().toLowerCase() || (Boolean(phone) && phone === customer.phone) || (Boolean(email) && email === customer.email);
   });
-  const totalSpend = customers.reduce((sum, customer) => sum + customer.lifetime_spend, 0);
-  const repeatCustomers = customers.filter((customer) => customer.order_count > 1).length;
+  const totalSpend = displayCustomers.reduce((sum, customer) => sum + customer.lifetime_spend, 0);
+  const repeatCustomers = displayCustomers.filter((customer) => customer.order_count > 1).length;
 
   return <>
     <div className="dash-heading"><div><h1>Customers</h1><p>Track customer profiles, order history, location, and lifetime value from MongoDB orders.</p></div></div>
-    <div className="metric-grid product-metrics"><Metric icon={<User />} label="Total Customers" value={String(customers.length)} /><Metric icon={<PackageCheck />} label="Repeat Customers" value={String(repeatCustomers)} /><Metric icon={<BarChart3 />} label="Lifetime Spend" value={money(totalSpend)} /><Metric icon={<MapPin />} label="Cities" value={String(new Set(customers.map((customer) => customer.city).filter(Boolean)).size)} /></div>
+    <div className="metric-grid product-metrics"><Metric icon={<User />} label="Total Customers" value={String(displayCustomers.length)} /><Metric icon={<PackageCheck />} label="Repeat Customers" value={String(repeatCustomers)} /><Metric icon={<BarChart3 />} label="Lifetime Spend" value={money(totalSpend)} /><Metric icon={<MapPin />} label="Cities" value={String(new Set(displayCustomers.map((customer) => customer.city).filter(Boolean)).size)} /></div>
     <label className="dash-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search customers, phone, city, or order" /></label>
     <div className="data-table"><table><thead><tr><th>Customer</th><th>Contact</th><th>Location</th><th>Orders</th><th>Lifetime Spend</th><th>Latest</th></tr></thead><tbody>{filtered.map((customer) => {
       const isOpen = expandedCustomer === `${customer.name}-${customer.phone || customer.email || ""}`;

@@ -26,6 +26,7 @@ import { navigate } from "../lib/navigation";
 import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
 import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
 import { PriceDisplay } from "../components/PriceDisplay";
+import { GulabiLogo } from "../components/GulabiLogo";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
 
 const CONTACT_PHONE = "7349583334";
@@ -142,7 +143,10 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
       </div>
       <header className="store-nav">
         <button className="menu" aria-label={open ? "Close categories menu" : "Open categories menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
-        <button className="brand brand-mark" onClick={() => navigate("/")}><span>Gulabi Threads</span></button>
+        <button className="brand brand-mark" onClick={() => navigate("/")}>
+          <GulabiLogo className="brand-logo-mark" markOnly />
+          <span>Gulabi Threads</span>
+        </button>
         <nav className={open ? "nav-links open" : "nav-links"}>
           <span className="nav-drawer-title">Categories</span>
           {categories.map((label) => <button key={label} onClick={() => { setOpen(false); navigate(shopPath(label)); }}>{label}</button>)}

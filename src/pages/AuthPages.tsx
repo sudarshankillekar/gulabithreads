@@ -259,6 +259,11 @@ export function LoginPage({
     <div className={isAdmin ? "auth-page admin-auth-page" : "auth-page customer-auth-page"}>
       <section className="auth-visual">
         <img src={visualImage} alt={isAdmin ? "Admin product management workspace" : "Gulabi Threads handmade bags and pouches login visual"} />
+        {!isAdmin && (
+          <button className="auth-visual-brand" onClick={() => navigate("/")} aria-label="Go to Gulabi Threads home">
+            <GulabiLogo />
+          </button>
+        )}
         {isAdmin && (
           <>
             <button className="auth-brand" onClick={() => navigate("/")} aria-label="Go to Gulabi Threads home">

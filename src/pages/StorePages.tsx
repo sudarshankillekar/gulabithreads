@@ -672,7 +672,7 @@ export function CheckoutPage(props: CartProps) {
                 {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
               </div>
             </section>
-            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} />
+            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={updateCoupon} onApplyCoupon={applyCoupon} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />
           </form> : <Empty title="Your bag is empty" text="Add a tote before starting checkout." action="Shop Totes" onAction={() => navigate("/shop")} />
         )}
       </main>

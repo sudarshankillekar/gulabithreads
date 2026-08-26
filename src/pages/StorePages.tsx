@@ -94,6 +94,22 @@ function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function nish10Discount(subtotal: number) {
+  return roundCurrency(subtotal * 0.1);
+}
+
+function normalizeCheckoutPrice(price: CheckoutPrice) {
+  const couponCode = normalizeCouponInput(price.coupon_code);
+  const discount = couponCode === FIRST_ORDER_COUPON && price.subtotal > 0 ? Math.max(price.discount, nish10Discount(price.subtotal)) : price.discount;
+  return {
+    ...price,
+    coupon_code: couponCode,
+    discount,
+    tax: 0,
+    total: roundCurrency(Math.max(price.subtotal - discount, 0) + price.shipping_cost),
+  };
+}
+
 function shopPath(category?: string | "All") {
   return category && category !== "All" ? `/shop?category=${encodeURIComponent(category)}` : "/shop";
 }
@@ -430,8 +446,9 @@ export function CheckoutPage(props: CartProps) {
       method: "POST",
       body: JSON.stringify({ items: props.cart, shipping_cost: nextShipping, coupon_code: couponCode }),
     });
-    setReview(priced);
-    return priced;
+    const normalized = normalizeCheckoutPrice(priced);
+    setReview(normalized);
+    return normalized;
   };
 
   const applyCoupon = async () => {

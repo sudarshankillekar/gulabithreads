@@ -613,7 +613,7 @@ def normalize_coupon(coupon_code: str) -> str:
     return coupon_code.strip().upper()
 
 
-VALID_COUPONS = {"NISH10"}
+VALID_COUPONS = {"NISH10": 0.10}
 
 
 async def calculate_checkout_price(items: list[CartItem], shipping_cost: float = 0, coupon_code: str = "") -> CheckoutPriceOut:
@@ -644,7 +644,7 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
     coupon = normalize_coupon(coupon_code)
     if coupon and coupon not in VALID_COUPONS:
         raise HTTPException(status_code=400, detail="Invalid coupon code. Use NISH10 for 10% off your first order.")
-    discount = round(subtotal * 0.1, 2) if coupon in VALID_COUPONS else 0
+    discount = round(subtotal * VALID_COUPONS[coupon], 2) if coupon in VALID_COUPONS else 0
     payable_subtotal = max(subtotal - discount, 0)
     tax = 0.0
     total = round(payable_subtotal + shipping_cost, 2)

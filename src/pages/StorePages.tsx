@@ -457,11 +457,11 @@ export function CheckoutPage(props: CartProps) {
         setCouponError("This coupon code is not valid.");
         return null;
       }
-      if (priced.discount <= 0) {
-        setCouponError("This coupon can only be applied when your order has a payable subtotal.");
+      if (priced.subtotal <= 0) {
+        setCouponError("Add an item to your bag before applying this coupon.");
         return null;
       }
-      setCouponMessage(`${priced.coupon_code} applied. You saved ${money(priced.discount)}.`);
+      setCouponMessage(priced.discount > 0 ? `${priced.coupon_code} applied. You saved ${money(priced.discount)}.` : `${priced.coupon_code} applied.`);
       return priced;
     } catch (exc) {
       await loadReview(shipping, "").catch(() => undefined);

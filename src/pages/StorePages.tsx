@@ -186,7 +186,6 @@ function StoreFooter({ categories }: { categories: string[] }) {
         <strong>Gulabi Threads</strong>
       </div>
       <nav>
-        {categories.map((category) => <button key={category} onClick={() => navigate(shopPath(category))}>{category}</button>)}
         <button onClick={() => navigate("/track")}>Track Order</button>
       </nav>
       <div className="footer-contact">

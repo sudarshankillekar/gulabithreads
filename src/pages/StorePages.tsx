@@ -5,7 +5,9 @@ import {
   Check,
   CreditCard,
   Filter,
+  Grid2X2,
   Heart,
+  Home,
   Instagram,
   Menu,
   Minus,
@@ -18,6 +20,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
+  Truck,
   User,
   X,
 } from "lucide-react";
@@ -36,9 +39,9 @@ const INSTAGRAM_URL = "https://www.instagram.com/gulabi.threads_?utm_source=ig_w
 const REFUND_POLICY = "Refunds or returns are accepted only for damaged or defective products reported and returned within 5 days of delivery.";
 const FIRST_ORDER_COUPON = "NISH10";
 const HOME_SLIDES = [
-  { image: "/assets/gulabi-home-slide-1.png", mobileImage: "/assets/gulabi-home-slide-mobile-1.png", alt: "Carry your story everyday with Gulabi Threads handcrafted bags" },
-  { image: "/assets/gulabi-home-slide-2.png", mobileImage: "/assets/gulabi-home-slide-mobile-2.png", alt: "Little things make big joys with Gulabi Threads accessories and toys" },
-  { image: "/assets/gulabi-home-slide-3.png", mobileImage: "/assets/gulabi-home-slide-mobile-3.png", alt: "For work, weekends, and getaways with Gulabi Threads weekender bags" },
+  { image: "/assets/gulabi-home-slide-1.png", mobileImage: "/assets/gulabi-home-mobile-banner-1.png", alt: "Carry your story everyday with Gulabi Threads handcrafted bags" },
+  { image: "/assets/gulabi-home-slide-2.png", mobileImage: "/assets/gulabi-home-mobile-banner-2.png", alt: "Little things make big joys with Gulabi Threads accessories and toys" },
+  { image: "/assets/gulabi-home-slide-3.png", mobileImage: "/assets/gulabi-home-mobile-banner-3.png", alt: "For work, weekends, and getaways with Gulabi Threads weekender bags" },
 ];
 
 type RazorpayOrderResponse = {
@@ -226,22 +229,36 @@ function ProductCard({ product, wishlist, addCart, toggleWish }: { product: Prod
   );
 }
 
+function HomeBenefits() {
+  return (
+    <section className="home-benefits" aria-label="Shopping benefits">
+      <div><Truck size={28} /><strong>Free Shipping</strong><span>On orders above ₹999</span></div>
+      <div><ShieldCheck size={28} /><strong>Secure Payment</strong><span>100% secure checkout</span></div>
+      <div><Package size={28} /><strong>Easy Returns</strong><span>5-day damaged item returns</span></div>
+      <div><Star size={28} /><strong>Premium Quality</strong><span>Handcrafted with care</span></div>
+    </section>
+  );
+}
+
+function MobileBottomNav({ cartCount, wishlist, isCustomerAuthed }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed">) {
+  return (
+    <nav className="mobile-bottom-nav" aria-label="Mobile storefront navigation">
+      <button className="active" onClick={() => navigate("/")}><Home size={23} /><span>Home</span></button>
+      <button onClick={() => navigate("/shop")}><Grid2X2 size={23} /><span>Categories</span></button>
+      <button onClick={() => navigate("/shop")}><Search size={24} /><span>Search</span></button>
+      <button onClick={() => navigate(isCustomerAuthed ? "/account/wishlist" : loginPath("/account/wishlist"))}><Heart size={24} /><span>Wishlist</span></button>
+      <button className="with-count" onClick={() => navigate("/cart")}><ShoppingBag size={24} /><span>Cart</span><b>{cartCount}</b></button>
+    </nav>
+  );
+}
+
 export function HomePage(props: StoreProps) {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isMobileHero, setIsMobileHero] = useState(() => window.matchMedia?.("(max-width: 640px)").matches ?? window.innerWidth <= 640);
   const heroTouchStart = useRef<number | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setActiveSlide((current) => (current + 1) % HOME_SLIDES.length), 5000);
     return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 640px)");
-    const updateMobileHero = () => setIsMobileHero(query.matches);
-    updateMobileHero();
-    query.addEventListener("change", updateMobileHero);
-    return () => query.removeEventListener("change", updateMobileHero);
   }, []);
 
   const goToSlide = (nextSlide: number) => setActiveSlide((nextSlide + HOME_SLIDES.length) % HOME_SLIDES.length);
@@ -259,14 +276,17 @@ export function HomePage(props: StoreProps) {
       <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
       <section className="hero handcrafted-hero">
         <div
-          className="hero-slider"
+          className={`hero-slider hero-slider-${activeSlide + 1}`}
           aria-label="Gulabi Threads featured collections"
           onTouchStart={(event) => { heroTouchStart.current = event.touches[0]?.clientX ?? null; }}
           onTouchEnd={handleHeroTouchEnd}
         >
           {HOME_SLIDES.map((slide, index) => (
             <button className={`${index === activeSlide ? "hero-artwork active" : "hero-artwork"} hero-slide-${index + 1}`} key={slide.image} onClick={() => navigate("/shop")} aria-label="Shop the handcrafted Gulabi Threads collection" tabIndex={index === activeSlide ? 0 : -1}>
-              <img src={isMobileHero ? slide.mobileImage : slide.image} alt={slide.alt} />
+              <picture>
+                <source media="(max-width: 640px)" srcSet={slide.mobileImage} />
+                <img src={slide.image} alt={slide.alt} />
+              </picture>
             </button>
           ))}
           <button className="slider-arrow slider-prev" type="button" onClick={() => goToSlide(activeSlide - 1)} aria-label="Previous banner"><ChevronLeft size={22} /></button>
@@ -277,11 +297,13 @@ export function HomePage(props: StoreProps) {
         </div>
         <h1 className="sr-only">Handcrafted Bags for Every You</h1>
       </section>
-      <main className="page">
+      <main className="page home-page">
         <SectionTitle eyebrow="Curated Selection" title="New Arrivals" action="View All Products" />
-        <div className="product-grid">{props.products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div>
+        <div className="product-grid home-products">{props.products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div>
+        <HomeBenefits />
       </main>
       <StoreFooter categories={props.categories} />
+      <MobileBottomNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} />
     </div>
   );
 }

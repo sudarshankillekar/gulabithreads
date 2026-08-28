@@ -133,6 +133,7 @@ p { color: var(--muted); line-height: 1.6; }
 .product-card .text-button { width: 100%; min-height: 42px; margin-top: auto; display: inline-flex; align-items: center; justify-content: center; padding: 0 16px; border: 1px solid var(--text); background: var(--text); color: white; letter-spacing: .16em; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
 .product-card .text-button:hover:not(:disabled) { background: var(--craft); border-color: var(--craft); transform: translateY(-1px); }
 .product-card .text-button:disabled { background: var(--surface-high); border-color: var(--outline); color: var(--muted); }
+.home-benefits, .mobile-bottom-nav { display: none; }
 .buy-panel .price-display { margin: 0; }
 .buy-panel .price-current { font-size: 23px; }
 .cart-price { margin: 0; justify-content: flex-end; text-align: right; }
@@ -502,36 +503,44 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   table { min-width: 680px; }
 }
 @media (max-width: 640px) {
-  .shipping-bar { min-height: 30px; height: 30px; display: grid; place-items: center; overflow: hidden; padding-inline: 10px; gap: 0; font-size: 8.5px; line-height: 1.15; text-align: center; letter-spacing: .055em; }
+  .shipping-bar { min-height: 38px; height: 38px; display: grid; place-items: center; overflow: hidden; padding-inline: 12px; gap: 0; background: linear-gradient(90deg, var(--craft-deep), var(--craft)); font-size: clamp(10px, 2.75vw, 12px); line-height: 1.2; text-align: center; letter-spacing: .06em; }
   .shipping-promo-desktop { display: none; }
-  .shipping-promo-mobile { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-inline: 10px; white-space: nowrap; }
-  .shipping-promo-one { animation: mobilePromoOne 8s infinite; }
-  .shipping-promo-two { animation: mobilePromoTwo 8s infinite; }
-  .store-nav { top: 30px; min-height: 64px; padding: 7px 14px; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; }
-  .store-nav .menu { grid-column: 1; width: 38px; height: 38px; }
-  .brand { grid-column: 2; min-width: 0; font-size: 22px; max-width: 210px; }
-  .brand-mark { display: flex; align-items: center; justify-content: center; justify-self: center; gap: 7px; text-align: center; }
+  .shipping-promo-mobile { position: static; display: block; max-width: 100%; padding-inline: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shipping-promo-one { animation: none; }
+  .shipping-promo-two { display: none; }
+  .store-nav { top: 38px; min-height: 80px; padding: 10px 16px; display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 8px; background: linear-gradient(90deg, #fffdfa, #fff7fb); color: var(--text); border-bottom: 1px solid rgba(199,77,150,.1); box-shadow: 0 10px 28px rgba(92,42,67,.08); }
+  .store-nav .menu { grid-column: 1; width: 42px; height: 42px; color: var(--text); }
+  .brand { grid-column: 2; min-width: 0; font-size: clamp(22px, 6vw, 26px); max-width: none; color: var(--craft-deep); }
+  .brand-mark { display: flex; align-items: center; justify-content: center; justify-self: center; gap: 6px; text-align: center; }
   .brand-mark span { white-space: nowrap; }
-  .brand-logo-mark.gulabi-logo { width: 30px; height: 24px; }
-  .nav-actions { grid-column: 3; justify-self: end; gap: 8px; }
+  .brand-logo-mark.gulabi-logo { width: 32px; height: 28px; }
+  .nav-actions { grid-column: 3; justify-self: end; gap: 8px; color: var(--text); }
+  .nav-actions span { background: var(--craft); color: white; }
   .nav-actions button[aria-label="Search"] { display: none; }
-  .nav-links { top: 94px; width: min(300px, 84vw); height: calc(100dvh - 94px); padding-top: 22px; }
-  .nav-scrim.open { inset: 94px 0 0; }
+  .nav-links { top: 118px; width: min(300px, 84vw); height: calc(100dvh - 118px); padding-top: 22px; }
+  .nav-scrim.open { inset: 118px 0 0; }
   .hero { padding-top: 120px; min-height: 720px; }
-  .handcrafted-hero { min-height: auto; padding-top: 94px; }
-  .hero-slider { aspect-ratio: auto; height: min(360px, 48svh); min-height: 318px; background: #fff4e6; }
-  .hero-artwork img { object-fit: cover; object-position: center top; }
-  .hero-slide-1 img { object-position: 45% top; }
-  .hero-slide-2 img { object-position: 48% top; }
-  .hero-slide-3 img { object-position: 50% top; }
-  .slider-arrow { display: none; }
-  .slider-dots { bottom: 6px; gap: 6px; }
-  .slider-dots button { width: 8px; height: 8px; }
-  .slider-dots button.active { width: 20px; }
+  .handcrafted-hero { min-height: auto; padding: 118px 10px 0; background: linear-gradient(180deg, #fffaf7, #fff7f2); }
+  .hero-slider { aspect-ratio: 847 / 524; height: auto; min-height: 0; overflow: hidden; background: #fff4e6; border-radius: 0 0 14px 14px; box-shadow: 0 16px 34px rgba(92,42,67,.1); }
+  .hero-slider-1 { aspect-ratio: 847 / 524; }
+  .hero-slider-2 { aspect-ratio: 822 / 559; }
+  .hero-slider-3 { aspect-ratio: 863 / 624; }
+  .hero-artwork { display: grid; place-items: center; overflow: hidden; background: #fff4e6; }
+  .hero-slide-1 { --mobile-slide: url("/assets/gulabi-home-mobile-banner-1.png"); }
+  .hero-slide-2 { --mobile-slide: url("/assets/gulabi-home-mobile-banner-2.png"); }
+  .hero-slide-3 { --mobile-slide: url("/assets/gulabi-home-mobile-banner-3.png"); }
+  .hero-artwork::before { display: none; }
+  .hero-artwork picture { position: relative; z-index: 1; width: 100%; height: 100%; display: block; overflow: hidden; }
+  .hero-artwork img { width: 100%; height: 100%; object-fit: contain; object-position: center center; background: #fff4e6; }
+  .slider-arrow { display: grid; top: 58%; width: 58px; height: 72px; background: transparent; color: transparent; box-shadow: none; opacity: 0; }
+  .slider-prev { left: 0; }
+  .slider-next { right: 0; }
+  .slider-dots { display: none; }
   .hero h1 { font-size: 42px; }
   .hero p { font-size: 16px; }
   .hero-promises { display: grid; gap: 12px; }
   .page, .cart-page, .checkout-page, .product-detail { padding: 34px 16px 84px; }
+  .home-page { padding: 30px 18px 34px; overflow: hidden; }
   .checkout-page { padding-top: 132px; }
   .product-detail { padding-top: 140px; }
   .breadcrumbs { margin-bottom: 22px; }
@@ -542,8 +551,21 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .buy-panel h1 { font-size: 34px; }
   .section-title { align-items: start; flex-direction: column; margin-bottom: 34px; }
   .section-title h2 { font-size: 38px; }
+  .home-page .section-title { flex-direction: row; align-items: end; margin-bottom: 20px; gap: 12px; }
+  .home-page .section-title .eyebrow { color: var(--craft); font-size: 12px; letter-spacing: .12em; }
+  .home-page .section-title h2 { font-size: 36px; }
+  .home-page .section-title button { flex: 0 0 auto; margin-bottom: 6px; color: var(--craft-deep); border-color: var(--craft-deep); font-size: 11px; white-space: nowrap; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 14px; }
+  .home-products { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(150px, 42vw); justify-content: start; gap: 14px; margin-inline: -18px; padding: 0 18px 20px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .home-products::-webkit-scrollbar { display: none; }
   .product-card { max-width: none; }
+  .home-products .product-card { scroll-snap-align: start; overflow: hidden; align-items: stretch; border-radius: 10px; background: white; box-shadow: 0 14px 34px rgba(92,42,67,.08); text-align: left; }
+  .home-products .product-image { aspect-ratio: 1 / 1.18; border-radius: 10px 10px 0 0; }
+  .home-products .product-name { padding: 0 10px; margin-top: 10px; text-align: left; font-size: 14px; }
+  .home-products .price-display { justify-content: flex-start; min-height: auto; padding: 0 10px; margin: 6px 0 12px; }
+  .home-products .price-current { color: var(--craft-deep); }
+  .home-products .text-button { display: none; }
+  .home-products .wish { width: 30px; height: 30px; background: rgba(255,255,255,.94); color: var(--craft-deep); }
   .product-card .text-button { font-size: 10px; min-height: 38px; padding-inline: 10px; }
   .product-name { font-size: 14px; margin-top: 12px; }
   .product-card p { font-size: 12px; }
@@ -552,7 +574,22 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .stock-badge { top: 8px; left: 8px; min-height: 30px; padding: 7px 10px; font-size: 11px; }
   .category-grid { grid-template-columns: 1fr; }
   .category-tile { min-height: 86px; }
-  .store-footer nav { grid-template-columns: repeat(2, max-content); gap: 12px 18px; }
+  .home-benefits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 22px -6px 8px; color: var(--text); text-align: center; }
+  .home-benefits div { display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; padding: 0 7px; border-left: 1px solid rgba(123,84,85,.16); }
+  .home-benefits div:first-child { border-left: 0; }
+  .home-benefits svg { color: var(--craft); stroke-width: 1.8; }
+  .home-benefits strong { font-size: 11px; line-height: 1.25; }
+  .home-benefits span { color: var(--text); font-size: 10px; line-height: 1.35; }
+  .store-footer { padding: 46px 20px 92px; gap: 18px; background: linear-gradient(135deg, var(--craft-deep), var(--craft)); }
+  .store-footer strong { font-size: 34px; }
+  .store-footer nav { display: flex; justify-content: center; gap: 12px 18px; }
+  .store-footer button { min-height: 42px; padding: 0 28px; border: 1px solid rgba(255,255,255,.86); border-radius: 999px; }
+  .footer-contact { display: none; }
+  .mobile-bottom-nav { position: fixed; z-index: 85; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; min-height: 64px; padding: 8px max(10px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-right)); border-top: 1px solid rgba(199,77,150,.14); background: rgba(255,255,255,.97); box-shadow: 0 -14px 28px rgba(92,42,67,.1); backdrop-filter: blur(14px); }
+  .mobile-bottom-nav button { position: relative; display: grid; justify-items: center; gap: 2px; color: var(--text); font-size: 11px; line-height: 1.2; }
+  .mobile-bottom-nav button.active { color: var(--craft-deep); }
+  .mobile-bottom-nav svg { stroke-width: 1.9; }
+  .mobile-bottom-nav b { position: absolute; top: -3px; right: calc(50% - 22px); min-width: 18px; height: 18px; display: grid; place-items: center; border-radius: 999px; background: var(--craft); color: white; font-size: 10px; }
   .bento { grid-template-columns: 1fr; grid-template-rows: repeat(3, 230px); }
   .tile-2 { grid-row: auto; }
   .shop-hero { height: 170px; margin-top: 116px; padding-inline: 16px; }
@@ -636,13 +673,19 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   table { min-width: 620px; }
 }
 @media (max-width: 420px) {
+  .shipping-bar { font-size: clamp(9.5px, 2.65vw, 10.5px); letter-spacing: .045em; }
   .store-nav { align-items: center; }
-  .brand { max-width: 185px; font-size: 19px; }
-  .brand-logo-mark.gulabi-logo { width: 28px; height: 22px; }
-  .nav-actions { gap: 4px; }
-  .nav-actions button { min-width: 24px; }
-  .hero-slider { aspect-ratio: auto; height: min(348px, 49svh); min-height: 312px; }
-  .hero-artwork img { object-fit: cover; object-position: center top; }
+  .store-nav { min-height: 80px; padding-inline: 14px; }
+  .brand { max-width: 210px; font-size: clamp(21px, 6vw, 24px); }
+  .brand-logo-mark.gulabi-logo { width: 30px; height: 26px; }
+  .nav-actions { gap: 6px; }
+  .nav-actions button { min-width: 26px; }
+  .handcrafted-hero { padding-top: 118px; padding-inline: 8px; }
+  .hero-slider { height: auto; min-height: 0; }
+  .hero-artwork img { object-fit: contain; object-position: center center; }
+  .slider-arrow { width: 52px; height: 68px; }
+  .slider-prev { left: 0; }
+  .slider-next { right: 0; }
   .product-detail { padding-top: 130px; }
   .gallery-main img { max-height: 430px; aspect-ratio: 1 / 1.12; }
   .gallery button { width: 62px; }
@@ -651,12 +694,21 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .shop-hero h1 { font-size: 34px; }
   .shop-hero .eyebrow { font-size: 10px; }
   .section-title h2 { font-size: 34px; }
+  .home-page .section-title { flex-wrap: wrap; }
+  .home-page .section-title h2 { font-size: 32px; }
+  .home-page .section-title button { margin-bottom: 0; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 12px; }
+  .home-products { grid-template-columns: none; grid-auto-columns: minmax(142px, 44vw); gap: 12px; }
   .product-card { max-width: none; }
   .product-image { aspect-ratio: 1 / 1.15; }
+  .home-products .product-image { aspect-ratio: 1 / 1.16; }
   .product-name { font-size: 13px; }
   .product-card .price-display { margin-bottom: 12px; }
   .product-card p { margin-bottom: 10px; }
+  .home-benefits { margin-inline: -12px; }
+  .home-benefits div { padding-inline: 5px; }
+  .home-benefits strong { font-size: 10px; }
+  .home-benefits span { font-size: 9px; }
   .cart-item { grid-template-columns: 86px minmax(0, 1fr); }
   .cart-item h3 { font-size: 18px; }
   .qty { gap: 10px; padding: 7px 10px; }

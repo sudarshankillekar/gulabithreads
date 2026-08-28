@@ -1,5 +1,7 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, TouchEvent, useEffect, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   Check,
   CreditCard,
   Filter,
@@ -24,7 +26,7 @@ import { money } from "../lib/format";
 import { discountedProductPrice } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
 import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
-import { bagImg, categoryHeroImg, landingHeroImg } from "../data/catalog";
+import { bagImg, categoryHeroImg } from "../data/catalog";
 import { PriceDisplay } from "../components/PriceDisplay";
 import { GulabiLogo } from "../components/GulabiLogo";
 import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
@@ -33,6 +35,11 @@ const CONTACT_PHONE = "7349583334";
 const INSTAGRAM_URL = "https://www.instagram.com/gulabi.threads_?utm_source=ig_web_button_share_sheet";
 const REFUND_POLICY = "Refunds or returns are accepted only for damaged or defective products reported and returned within 5 days of delivery.";
 const FIRST_ORDER_COUPON = "NISH10";
+const HOME_SLIDES = [
+  { image: "/assets/gulabi-home-slide-1.png", mobileImage: "/assets/gulabi-home-slide-mobile-1.png", alt: "Carry your story everyday with Gulabi Threads handcrafted bags" },
+  { image: "/assets/gulabi-home-slide-2.png", mobileImage: "/assets/gulabi-home-slide-mobile-2.png", alt: "Little things make big joys with Gulabi Threads accessories and toys" },
+  { image: "/assets/gulabi-home-slide-3.png", mobileImage: "/assets/gulabi-home-slide-mobile-3.png", alt: "For work, weekends, and getaways with Gulabi Threads weekender bags" },
+];
 
 type RazorpayOrderResponse = {
   order_id: string;
@@ -153,9 +160,11 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
   const [open, setOpen] = useState(false);
   return (
     <>
-      <div className="shipping-bar">
-        <span>Use coupon NISH10 & get 10% off your first order</span>
-        <span><Sparkles size={15} /> Shop above ₹2000 & get a free keychain</span>
+      <div className="shipping-bar" aria-label="Gulabi Threads offers">
+        <span className="shipping-promo shipping-promo-desktop">Use coupon NISH10 & get 10% off your first order</span>
+        <span className="shipping-promo shipping-promo-desktop"><Sparkles size={15} /> Shop above ₹2000 & get a free keychain</span>
+        <span className="shipping-promo shipping-promo-mobile shipping-promo-one">Use NISH10 & get 10% off first order</span>
+        <span className="shipping-promo shipping-promo-mobile shipping-promo-two"><Sparkles size={13} /> Shop ₹2000+ & get a free keychain</span>
       </div>
       <header className="store-nav">
         <button className="menu" aria-label={open ? "Close categories menu" : "Open categories menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
@@ -218,13 +227,54 @@ function ProductCard({ product, wishlist, addCart, toggleWish }: { product: Prod
 }
 
 export function HomePage(props: StoreProps) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [isMobileHero, setIsMobileHero] = useState(() => window.matchMedia?.("(max-width: 640px)").matches ?? window.innerWidth <= 640);
+  const heroTouchStart = useRef<number | null>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setActiveSlide((current) => (current + 1) % HOME_SLIDES.length), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px)");
+    const updateMobileHero = () => setIsMobileHero(query.matches);
+    updateMobileHero();
+    query.addEventListener("change", updateMobileHero);
+    return () => query.removeEventListener("change", updateMobileHero);
+  }, []);
+
+  const goToSlide = (nextSlide: number) => setActiveSlide((nextSlide + HOME_SLIDES.length) % HOME_SLIDES.length);
+  const handleHeroTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (heroTouchStart.current === null) return;
+    const endX = event.changedTouches[0]?.clientX ?? heroTouchStart.current;
+    const deltaX = heroTouchStart.current - endX;
+    heroTouchStart.current = null;
+    if (Math.abs(deltaX) < 42) return;
+    goToSlide(activeSlide + (deltaX > 0 ? 1 : -1));
+  };
+
   return (
     <div>
       <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
       <section className="hero handcrafted-hero">
-        <button className="hero-artwork" onClick={() => navigate("/shop")} aria-label="Shop the handcrafted Gulabi Threads collection">
-          <img src={landingHeroImg} alt="Handcrafted bags for every you by Gulabi Threads" />
-        </button>
+        <div
+          className="hero-slider"
+          aria-label="Gulabi Threads featured collections"
+          onTouchStart={(event) => { heroTouchStart.current = event.touches[0]?.clientX ?? null; }}
+          onTouchEnd={handleHeroTouchEnd}
+        >
+          {HOME_SLIDES.map((slide, index) => (
+            <button className={`${index === activeSlide ? "hero-artwork active" : "hero-artwork"} hero-slide-${index + 1}`} key={slide.image} onClick={() => navigate("/shop")} aria-label="Shop the handcrafted Gulabi Threads collection" tabIndex={index === activeSlide ? 0 : -1}>
+              <img src={isMobileHero ? slide.mobileImage : slide.image} alt={slide.alt} />
+            </button>
+          ))}
+          <button className="slider-arrow slider-prev" type="button" onClick={() => goToSlide(activeSlide - 1)} aria-label="Previous banner"><ChevronLeft size={22} /></button>
+          <button className="slider-arrow slider-next" type="button" onClick={() => goToSlide(activeSlide + 1)} aria-label="Next banner"><ChevronRight size={22} /></button>
+          <div className="slider-dots" aria-label="Choose banner">
+            {HOME_SLIDES.map((slide, index) => <button className={index === activeSlide ? "active" : ""} key={slide.image} type="button" onClick={() => goToSlide(index)} aria-label={`Show banner ${index + 1}`} />)}
+          </div>
+        </div>
         <h1 className="sr-only">Handcrafted Bags for Every You</h1>
       </section>
       <main className="page">

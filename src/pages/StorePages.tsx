@@ -37,7 +37,7 @@ import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, C
 const CONTACT_PHONE = "7349583334";
 const INSTAGRAM_URL = "https://www.instagram.com/gulabi.threads_?utm_source=ig_web_button_share_sheet";
 const REFUND_POLICY = "Refunds or returns are accepted only for damaged or defective products reported and returned within 5 days of delivery.";
-const FIRST_ORDER_COUPON = "NISH10";
+const FIRST_ORDER_COUPON = "GT0504";
 const HOME_SLIDES = [
   { image: "/assets/gulabi-home-slide-1.png", mobileImage: "/assets/gulabi-home-mobile-banner-1.png", alt: "Carry your story everyday with Gulabi Threads handcrafted bags" },
   { image: "/assets/gulabi-home-slide-2.png", mobileImage: "/assets/gulabi-home-mobile-banner-2.png", alt: "Little things make big joys with Gulabi Threads accessories and toys" },
@@ -164,10 +164,10 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
   return (
     <>
       <div className="shipping-bar" aria-label="Gulabi Threads offers">
-        <span className="shipping-promo shipping-promo-desktop">Use coupon NISH10 & get 10% off your first order</span>
-        <span className="shipping-promo shipping-promo-desktop"><Sparkles size={15} /> Shop above ₹2000 & get a free keychain</span>
-        <span className="shipping-promo shipping-promo-mobile shipping-promo-one">Use NISH10 & get 10% off first order</span>
-        <span className="shipping-promo shipping-promo-mobile shipping-promo-two"><Sparkles size={13} /> Shop ₹2000+ & get a free keychain</span>
+        <span className="shipping-promo shipping-promo-desktop shipping-promo-one">Use coupon GT0504 & get 10% off your first order</span>
+        <span className="shipping-promo shipping-promo-desktop shipping-promo-two"><Sparkles size={15} /> Shop above ₹2000 & get a free gift</span>
+        <span className="shipping-promo shipping-promo-mobile shipping-promo-one">Use GT0504: 10% off first order</span>
+        <span className="shipping-promo shipping-promo-mobile shipping-promo-two"><Sparkles size={13} /> Shop ₹2000+ & get a free gift</span>
       </div>
       <header className="store-nav">
         <button className="menu" aria-label={open ? "Close categories menu" : "Open categories menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>

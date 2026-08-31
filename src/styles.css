@@ -193,6 +193,11 @@ p { color: var(--muted); line-height: 1.6; }
 .stars span { margin-left: 10px; color: var(--muted); }
 details { border-top: 1px solid rgba(130,116,115,.18); padding: 18px 0; }
 summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; font-size: 12px; }
+.product-description { max-width: 64ch; margin-top: 14px; display: grid; gap: 12px; color: var(--muted); font-size: 16px; line-height: 1.75; }
+.product-description p { margin: 0; color: inherit; white-space: pre-line; }
+.description-empty { margin: 12px 0 0; color: var(--muted); }
+.description-toggle { justify-self: start; margin-top: 2px; padding-bottom: 4px; border-bottom: 1px solid currentColor; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.description-toggle:hover { color: var(--craft); }
 .cart-layout, .checkout-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 48px; align-items: start; }
 .cart-list { display: flex; flex-direction: column; gap: 28px; }
 .cart-item { display: grid; grid-template-columns: 170px 1fr; gap: 28px; padding-bottom: 28px; border-bottom: 1px solid rgba(130,116,115,.15); }
@@ -550,6 +555,7 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .gallery button { width: 70px; }
   .buy-panel { gap: 16px; }
   .buy-panel h1 { font-size: 34px; }
+  .product-description { max-width: none; gap: 10px; font-size: 15px; line-height: 1.65; }
   .section-title { align-items: start; flex-direction: column; margin-bottom: 34px; }
   .section-title h2 { font-size: 38px; }
   .home-page .section-title { flex-direction: row; align-items: end; margin-bottom: 20px; gap: 12px; }
@@ -691,6 +697,8 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .gallery-main img { max-height: 430px; aspect-ratio: 1 / 1.12; }
   .gallery button { width: 62px; }
   .buy-panel h1 { font-size: 31px; }
+  .product-description { font-size: 14.5px; line-height: 1.55; }
+  .description-toggle { font-size: 11px; }
   .shop-hero { height: 145px; }
   .shop-hero h1 { font-size: 34px; }
   .shop-hero .eyebrow { font-size: 10px; }

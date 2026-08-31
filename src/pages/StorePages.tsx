@@ -350,6 +350,53 @@ export function ShopPage(props: StoreProps) {
   );
 }
 
+const DESCRIPTION_PREVIEW_CHARS = 420;
+
+function ProductDescription({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const normalizedDescription = useMemo(() => (description || "").trim(), [description]);
+  const shouldCollapse = useMemo(() => {
+    if (!normalizedDescription) return false;
+    const lineCount = normalizedDescription.split(/\r?\n/).length;
+    return normalizedDescription.length > DESCRIPTION_PREVIEW_CHARS || lineCount > 7;
+  }, [normalizedDescription]);
+  const previewText = useMemo(() => {
+    if (!normalizedDescription || !shouldCollapse || expanded) return normalizedDescription;
+    const clipped = normalizedDescription.slice(0, DESCRIPTION_PREVIEW_CHARS);
+    const wordBreak = clipped.lastIndexOf(" ");
+    const cleanClip = wordBreak > DESCRIPTION_PREVIEW_CHARS * 0.7 ? clipped.slice(0, wordBreak) : clipped;
+    return `${cleanClip.trimEnd()}...`;
+  }, [expanded, normalizedDescription, shouldCollapse]);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [normalizedDescription]);
+
+  if (!normalizedDescription) {
+    return <p className="description-empty">Description will be updated soon.</p>;
+  }
+
+  const paragraphs = previewText.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+
+  return (
+    <div className={`product-description ${shouldCollapse && !expanded ? "collapsed" : ""}`}>
+      {paragraphs.map((block, index) => (
+        <p key={`${index}-${block.slice(0, 12)}`}>{block}</p>
+      ))}
+      {shouldCollapse && (
+        <button
+          aria-expanded={expanded}
+          className="description-toggle"
+          onClick={() => setExpanded((current) => !current)}
+          type="button"
+        >
+          {expanded ? "Show less" : "Load more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish, isCustomerAuthed, categories }: { product: Product } & StoreProps) {
   const allGalleryImages = useMemo(
     () => Array.from(new Set([product.image, ...(product.gallery || [])].map((url) => url.trim()).filter(Boolean))),
@@ -397,7 +444,7 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
             <div className="stars">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={16} fill={i < product.rating ? "currentColor" : "none"} />)}<span>{product.stock} in stock</span></div>
             <button className="primary-button full" disabled={product.stock <= 0} onClick={() => addCart(product.slug)}>{product.stock > 0 ? "Add To Bag" : "Out Of Stock"}</button>
             <button className="secondary-button full" onClick={() => toggleWish(product.slug)}>{wishlist.includes(product.slug) ? "Saved To Wishlist" : "Add To Wishlist"}</button>
-            <details open><summary>Description</summary><p>{product.description}</p></details>
+            <details open><summary>Description</summary><ProductDescription description={product.description} /></details>
             <details><summary>Shipping & Returns</summary><p>Complimentary standard shipping on eligible orders. {REFUND_POLICY} Contact +91 {CONTACT_PHONE} for support.</p></details>
           </aside>
         </section>

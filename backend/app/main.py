@@ -12,6 +12,7 @@ import secrets
 import smtplib
 import ssl
 import time
+from urllib.parse import urlparse
 
 import certifi
 import httpx
@@ -46,6 +47,24 @@ def strip_id(document: dict) -> dict:
     return document
 
 
+def is_valid_product_image_url(url: str) -> bool:
+    value = str(url or "").strip()
+    if not value:
+        return False
+    if value.startswith("/assets/") or value.startswith("data:image/"):
+        return True
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return False
+    if "res.cloudinary.com" in parsed.netloc and "/image/upload/" in parsed.path:
+        suffix = parsed.path.split("/image/upload/", 1)[1].strip("/")
+        if not suffix:
+            return False
+        if "/" not in suffix and suffix in {"f_auto", "q_auto", "f_auto,q_auto"}:
+            return False
+    return True
+
+
 def normalize_product_document(document: dict) -> dict:
     product = strip_id(document)
     image = str(product.get("image") or "").strip()
@@ -68,11 +87,11 @@ def normalize_product_document(document: dict) -> dict:
     product["discount_price"] = max(0, min(price, round(discount_price)))
     ordered_gallery = []
     for url in [image, *gallery]:
-        if url and url not in ordered_gallery:
+        if is_valid_product_image_url(url) and url not in ordered_gallery:
             ordered_gallery.append(url)
-    if not image and ordered_gallery:
+    if (not image or not is_valid_product_image_url(image)) and ordered_gallery:
         product["image"] = ordered_gallery[0]
-    product["gallery"] = ordered_gallery or ([image] if image else [])
+    product["gallery"] = ordered_gallery
     return product
 
 

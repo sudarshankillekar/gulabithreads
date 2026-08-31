@@ -180,6 +180,7 @@ p { color: var(--muted); line-height: 1.6; }
 .detail-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, .9fr); gap: 48px; align-items: start; }
 .gallery-main { position: relative; width: 100%; background: var(--surface-low); border: 1px solid rgba(212,194,194,.35); overflow: hidden; }
 .gallery-main img { display: block; width: 100%; max-height: min(680px, 68vh); aspect-ratio: 4 / 5; object-fit: contain; object-position: center; }
+.gallery-placeholder { display: grid; place-items: center; width: 100%; max-height: min(680px, 68vh); aspect-ratio: 4 / 5; padding: 32px; color: var(--muted); text-align: center; }
 .gallery > div { display: flex; gap: 12px; margin-top: 16px; }
 .gallery > .gallery-main { display: block; margin-top: 0; }
 .gallery button { width: 90px; aspect-ratio: 1; border: 2px solid transparent; }

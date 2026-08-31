@@ -339,7 +339,7 @@ function uniqueImageUrls(urls: string[]) {
 }
 
 function galleryFromText(value: string) {
-  return uniqueImageUrls(value.split(/[\n,]+/));
+  return uniqueImageUrls(value.split(/\r?\n+/));
 }
 
 function ProductsManager({ products, categories, admin, onProductCreate, onProductUpdate, onProductDelete }: { products: Product[]; categories: string[]; admin?: boolean; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void> }) {

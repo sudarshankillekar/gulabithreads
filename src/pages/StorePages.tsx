@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, TouchEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -351,13 +351,28 @@ export function ShopPage(props: StoreProps) {
 }
 
 export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish, isCustomerAuthed, categories }: { product: Product } & StoreProps) {
-  const galleryImages = Array.from(new Set([product.image, ...(product.gallery || [])].filter(Boolean)));
-  const galleryKey = galleryImages.join("|");
-  const [image, setImage] = useState(galleryImages[0] || product.image);
+  const allGalleryImages = useMemo(
+    () => Array.from(new Set([product.image, ...(product.gallery || [])].map((url) => url.trim()).filter(Boolean))),
+    [product.image, product.gallery],
+  );
+  const galleryKey = allGalleryImages.join("|");
+  const [image, setImage] = useState(allGalleryImages[0] || product.image);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
+  const galleryImages = useMemo(() => allGalleryImages.filter((src) => !failedImages.includes(src)), [allGalleryImages, failedImages]);
+  const activeImage = galleryImages.includes(image) ? image : galleryImages[0] || "";
 
   useEffect(() => {
-    setImage(galleryImages[0] || product.image);
+    setFailedImages([]);
+    setImage(allGalleryImages[0] || product.image);
   }, [product.slug, product.image, galleryKey]);
+
+  useEffect(() => {
+    if (galleryImages.length && activeImage !== image) setImage(activeImage);
+  }, [activeImage, galleryImages.length, image]);
+
+  const markImageFailed = (src: string) => {
+    setFailedImages((current) => (src && !current.includes(src) ? [...current, src] : current));
+  };
 
   return (
     <div>
@@ -368,9 +383,13 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
           <div className="gallery">
             <div className="gallery-main">
               {product.stock <= 0 && <span className="stock-badge">Out of stock</span>}
-              <img src={image} alt={product.name} />
+              {activeImage ? (
+                <img key={activeImage} src={activeImage} alt={product.name} onError={() => markImageFailed(activeImage)} />
+              ) : (
+                <div className="gallery-placeholder">Product image unavailable</div>
+              )}
             </div>
-            {galleryImages.length > 1 && <div>{galleryImages.map((src) => <button className={image === src ? "active" : ""} key={src} onClick={() => setImage(src)}><img src={src} alt="" /></button>)}</div>}
+            {galleryImages.length > 1 && <div>{galleryImages.map((src) => <button className={activeImage === src ? "active" : ""} key={src} onClick={() => setImage(src)}><img src={src} alt="" onError={() => markImageFailed(src)} /></button>)}</div>}
           </div>
           <aside className="buy-panel">
             <h1>{product.name}</h1>
@@ -379,7 +398,6 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
             <button className="primary-button full" disabled={product.stock <= 0} onClick={() => addCart(product.slug)}>{product.stock > 0 ? "Add To Bag" : "Out Of Stock"}</button>
             <button className="secondary-button full" onClick={() => toggleWish(product.slug)}>{wishlist.includes(product.slug) ? "Saved To Wishlist" : "Add To Wishlist"}</button>
             <details open><summary>Description</summary><p>{product.description}</p></details>
-            <details><summary>Specifications</summary><p>14&quot;W x 11&quot;H x 6&quot;D. Magnetic snap closure, rose gold hardware, two slip pockets.</p></details>
             <details><summary>Shipping & Returns</summary><p>Complimentary standard shipping on eligible orders. {REFUND_POLICY} Contact +91 {CONTACT_PHONE} for support.</p></details>
           </aside>
         </section>

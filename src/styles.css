@@ -198,6 +198,7 @@ summary { cursor: pointer; text-transform: uppercase; letter-spacing: .12em; fon
 .description-toggle { justify-self: start; margin-top: 2px; padding-bottom: 4px; border-bottom: 1px solid currentColor; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .description-toggle:hover { color: var(--craft); }
 .cart-layout, .checkout-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 48px; align-items: start; }
+.checkout-grid-single { grid-template-columns: minmax(0, 960px); }
 .cart-list { display: flex; flex-direction: column; gap: 28px; }
 .cart-item { display: grid; grid-template-columns: 170px 1fr; gap: 28px; padding-bottom: 28px; border-bottom: 1px solid rgba(130,116,115,.15); }
 .cart-item img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }

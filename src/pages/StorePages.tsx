@@ -544,6 +544,8 @@ export function CheckoutPage(props: CartProps) {
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
   const total = review?.total ?? props.subtotal + shipping;
   const isPaymentStep = step === "payment";
+  const showCheckoutSummary = step !== "customer" && step !== "address";
+  const checkoutGridClass = showCheckoutSummary ? "checkout-grid" : "checkout-grid checkout-grid-single";
   const checkoutButtonLabel = paying ? "Processing..." : isPaymentStep ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order";
   const shippingAddress: AddressPayload | null = address ? { ...address, full_name: customer.full_name, phone: customer.phone, email: customer.email } : null;
   const existingAccount = props.customerAccounts?.some((account) => {
@@ -812,7 +814,7 @@ export function CheckoutPage(props: CartProps) {
       <main className={isPaymentStep && !done ? "checkout-page has-payment-cta" : "checkout-page"}>
         <Progress step={step} />
         {done ? <Success total={confirmedTotal ?? total} customer={customer} onCreateCustomer={props.onCreateCustomer} hasAccount={Boolean(props.customerSession)} /> : (
-          props.cart.length ? <form className="checkout-grid" onSubmit={submit}>
+          props.cart.length ? <form className={checkoutGridClass} onSubmit={submit}>
             <section className="checkout-panel">
               {step === "identity" && !isSignedInCheckout && <IdentityStep onGuest={() => { setCheckoutMode("guest"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("guest_checkout_selected"); }} onLogin={() => { setCheckoutMode("registered"); setStep("customer"); trackCheckout("login_selected"); }} onCreate={() => { setCheckoutMode("registered"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("account_creation_selected"); }} />}
               {step === "customer" && <CustomerDetailsStep mode={checkoutMode} isAuthenticated={isSignedInCheckout} customer={customer} customerAccounts={props.customerAccounts || []} onLogin={props.onCustomerLogin} onCreateCustomer={props.onCreateCustomer} setCustomer={setCustomer} existingAccount={Boolean(existingAccount)} />}
@@ -825,7 +827,7 @@ export function CheckoutPage(props: CartProps) {
                 {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
               </div>
             </section>
-            <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={updateCoupon} onApplyCoupon={applyCoupon} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />
+            {showCheckoutSummary && <OrderSummary subtotal={review?.subtotal ?? props.subtotal} shipping={review?.shipping_cost ?? shipping} discount={review?.discount ?? 0} total={review?.total} button={isPaymentStep ? checkoutButtonLabel : "Back To Cart"} onAction={() => navigate("/cart")} buttonType={isPaymentStep ? "submit" : "button"} disabled={paying} coupon={coupon} setCoupon={updateCoupon} onApplyCoupon={applyCoupon} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />}
           </form> : <Empty title="Your bag is empty" text="Add a tote before starting checkout." action="Shop Totes" onAction={() => navigate("/shop")} />
         )}
       </main>

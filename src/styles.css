@@ -587,11 +587,14 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .home-benefits svg { color: var(--craft); stroke-width: 1.8; }
   .home-benefits strong { font-size: 11px; line-height: 1.25; }
   .home-benefits span { color: var(--text); font-size: 10px; line-height: 1.35; }
-  .store-footer { padding: 46px 20px 92px; gap: 18px; background: linear-gradient(135deg, var(--craft-deep), var(--craft)); }
+  .store-footer { padding: 46px 20px 98px; gap: 22px; background: linear-gradient(135deg, var(--craft-deep), var(--craft)); }
   .store-footer strong { font-size: 34px; }
   .store-footer nav { display: flex; justify-content: center; gap: 12px 18px; }
   .store-footer button { min-height: 42px; padding: 0 28px; border: 1px solid rgba(255,255,255,.86); border-radius: 999px; }
-  .footer-contact { display: none; }
+  .footer-contact { display: grid; justify-self: center; justify-items: center; width: min(100%, 420px); gap: 10px; padding-left: 0; border-left: 0; }
+  .footer-contact p { max-width: 32ch; text-align: center; font-size: 13px; line-height: 1.5; }
+  .footer-policy { max-width: 34ch; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.22); }
+  .footer-contact a { justify-content: center; min-height: 28px; }
   .mobile-bottom-nav { position: fixed; z-index: 85; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; min-height: 64px; padding: 8px max(10px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-right)); border-top: 1px solid rgba(199,77,150,.14); background: rgba(255,255,255,.97); box-shadow: 0 -14px 28px rgba(92,42,67,.1); backdrop-filter: blur(14px); }
   .mobile-bottom-nav button { position: relative; display: grid; justify-items: center; gap: 2px; color: var(--text); font-size: 11px; line-height: 1.2; }
   .mobile-bottom-nav button.active { color: var(--craft-deep); }

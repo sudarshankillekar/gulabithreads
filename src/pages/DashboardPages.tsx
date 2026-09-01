@@ -203,11 +203,11 @@ function CustomerProfile({ customerName }: { customerName: string }) {
   });
   const [payments, setPayments] = useState<SavedPaymentMethod[]>(() => {
     const raw = localStorage.getItem("gt-customer-payments");
-    return raw ? JSON.parse(raw) as SavedPaymentMethod[] : [
+    const saved = raw ? JSON.parse(raw) as SavedPaymentMethod[] : [
       { id: "upi", label: "UPI", detail: "Not added" },
       { id: "card", label: "Card", detail: "Not added" },
-      { id: "cod", label: "Cash on Delivery", detail: "Available" },
     ];
+    return saved.filter((method) => method.id !== "cod" && method.label !== "Cash on Delivery");
   });
 
   useEffect(() => {

@@ -531,7 +531,6 @@ export function CheckoutPage(props: CartProps) {
   const [customer, setCustomer] = useState({ full_name: props.customerSession?.name || "", phone: props.customerSession?.phone || "", email: props.customerSession?.email || "" });
   const [address, setAddress] = useState<AddressPayload | null>(null);
   const shipping = 0;
-  const [payment, setPayment] = useState("Razorpay");
   const [coupon, setCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
   const [couponError, setCouponError] = useState("");
@@ -546,7 +545,7 @@ export function CheckoutPage(props: CartProps) {
   const isPaymentStep = step === "payment";
   const showCheckoutSummary = step !== "customer" && step !== "address";
   const checkoutGridClass = showCheckoutSummary ? "checkout-grid" : "checkout-grid checkout-grid-single";
-  const checkoutButtonLabel = paying ? "Processing..." : isPaymentStep ? payment === "Razorpay" ? `Pay ${money(total)} & Place Order` : "Place COD Order" : step === "customer" ? "Continue To Address" : "Review Order";
+  const checkoutButtonLabel = paying ? "Processing..." : isPaymentStep ? `Pay ${money(total)} & Place Order` : step === "customer" ? "Continue To Address" : "Review Order";
   const shippingAddress: AddressPayload | null = address ? { ...address, full_name: customer.full_name, phone: customer.phone, email: customer.email } : null;
   const existingAccount = props.customerAccounts?.some((account) => {
     const emailMatches = Boolean(customer.email) && account.email.toLowerCase() === customer.email.toLowerCase();
@@ -628,18 +627,6 @@ export function CheckoutPage(props: CartProps) {
     }
   };
 
-  const completeOrderWithoutRazorpay = async (shippingAddress: AddressPayload, couponCode = review?.coupon_code || "") => {
-    const created = await apiRequest<OrderRow>("/orders", {
-      method: "POST",
-      body: JSON.stringify({ customer: shippingAddress.full_name, customer_email: customer.email, customer_phone: customer.phone, checkout_mode: checkoutMode, items: props.cart, address: shippingAddress, shipping_method: "Standard Shipping", shipping_cost: shipping, payment_method: "Cash on Delivery", coupon_code: couponCode, idempotency_key: idempotencyKey }),
-    });
-    setConfirmedTotal(created.total);
-    props.onOrderPlaced?.(created);
-    setDone(true);
-    setStep("confirmation");
-    setIdempotencyKey(createIdempotencyKey());
-    trackCheckout("purchase_completed", { orderId: created.id, payment: "COD" });
-  };
   const openRazorpayCheckout = async (shippingAddress: AddressPayload, couponCode = review?.coupon_code || "") => {
     await loadRazorpayCheckout();
     if (!window.Razorpay) {
@@ -795,8 +782,7 @@ export function CheckoutPage(props: CartProps) {
           await loadReview(shipping, "");
           appliedCoupon = "";
         }
-        if (payment === "Razorpay") await openRazorpayCheckout(shippingAddress, appliedCoupon);
-        else await completeOrderWithoutRazorpay(shippingAddress, appliedCoupon);
+        await openRazorpayCheckout(shippingAddress, appliedCoupon);
       } catch {
         setError("We could not place this order. Please check the backend connection and try again.");
       }
@@ -819,9 +805,9 @@ export function CheckoutPage(props: CartProps) {
               {step === "identity" && !isSignedInCheckout && <IdentityStep onGuest={() => { setCheckoutMode("guest"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("guest_checkout_selected"); }} onLogin={() => { setCheckoutMode("registered"); setStep("customer"); trackCheckout("login_selected"); }} onCreate={() => { setCheckoutMode("registered"); setCustomer({ full_name: "", phone: "", email: "" }); setStep("customer"); trackCheckout("account_creation_selected"); }} />}
               {step === "customer" && <CustomerDetailsStep mode={checkoutMode} isAuthenticated={isSignedInCheckout} customer={customer} customerAccounts={props.customerAccounts || []} onLogin={props.onCustomerLogin} onCreateCustomer={props.onCreateCustomer} setCustomer={setCustomer} existingAccount={Boolean(existingAccount)} />}
               {step === "address" && <AddressStep address={address} />}
-              {step === "payment" && <PaymentStep payment={payment} setPayment={setPayment} review={review} address={shippingAddress} cartProducts={props.cartProducts} coupon={coupon} setCoupon={updateCoupon} applyCoupon={applyCoupon} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />}
+              {step === "payment" && <PaymentStep review={review} address={shippingAddress} cartProducts={props.cartProducts} coupon={coupon} setCoupon={updateCoupon} applyCoupon={applyCoupon} couponMessage={couponMessage} couponError={couponError} couponApplying={couponApplying} />}
               {error && <p className="form-error">{error}</p>}
-              {isPaymentStep && <PaymentStickyCta total={total} payment={payment} label={checkoutButtonLabel} disabled={paying} />}
+              {isPaymentStep && <PaymentStickyCta total={total} label={checkoutButtonLabel} disabled={paying} />}
               <div className="button-row checkout-actions">
                 {step !== "identity" && <button type="button" className="secondary-button" onClick={goBack}>Back</button>}
                 {step !== "identity" && !isPaymentStep && <button className="primary-button" disabled={paying}>{checkoutButtonLabel}</button>}
@@ -1001,21 +987,21 @@ function LineInput({ name, label, wide, required, defaultValue, value, onChange,
   return <label className={wide ? "line-input wide" : "line-input"}><input name={name} placeholder=" " required={required} inputMode={inputMode} maxLength={maxLength} autoComplete={autoComplete} {...inputProps} /><span>{label}</span></label>;
 }
 
-function PaymentStep({ payment, setPayment, review, address, cartProducts, coupon, setCoupon, applyCoupon, couponMessage, couponError, couponApplying }: { payment: string; setPayment: (value: string) => void; review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => CheckoutPrice | null | void | Promise<CheckoutPrice | null | void>; couponMessage: string; couponError: string; couponApplying: boolean }) {
+function PaymentStep({ review, address, cartProducts, coupon, setCoupon, applyCoupon, couponMessage, couponError, couponApplying }: { review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => CheckoutPrice | null | void | Promise<CheckoutPrice | null | void>; couponMessage: string; couponError: string; couponApplying: boolean }) {
   const items = review?.items || cartProducts.map(({ item, product }) => {
     const unitPrice = discountedProductPrice(product);
     return { slug: product.slug, name: product.name, image: product.image, variant: "", qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
   });
-  return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong>{item.variant && <span>{item.variant}</span>}<small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder={FIRST_ORDER_COUPON} /></label><button type="button" className="secondary-button" onClick={applyCoupon} disabled={couponApplying}>{couponApplying ? "Applying..." : "Apply"}</button>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{couponError && <p className="coupon-error">{couponError}</p>}</div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list">{["Razorpay", "Cash on Delivery"].map((item) => <label className={payment === item ? "choice active" : "choice"} key={item}><input type="radio" name="payment" checked={payment === item} onChange={() => setPayment(item)} /><span><CreditCard /> <strong>{item === "Razorpay" ? "Razorpay (UPI, Card, Wallet)" : item}</strong><small>{item === "Razorpay" ? "Secure online payment" : "Pay when your order arrives"}</small></span><ShieldCheck /></label>)}</div></>;
+  return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong>{item.variant && <span>{item.variant}</span>}<small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder={FIRST_ORDER_COUPON} /></label><button type="button" className="secondary-button" onClick={applyCoupon} disabled={couponApplying}>{couponApplying ? "Applying..." : "Apply"}</button>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{couponError && <p className="coupon-error">{couponError}</p>}</div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list"><div className="choice active" aria-label="Online payment with Razorpay"><span><CreditCard /> <strong>Razorpay (UPI, Card, Wallet)</strong><small>Secure online payment</small></span><ShieldCheck /></div></div></>;
 }
 
-function PaymentStickyCta({ total, payment, label, disabled }: { total: number; payment: string; label: string; disabled: boolean }) {
+function PaymentStickyCta({ total, label, disabled }: { total: number; label: string; disabled: boolean }) {
   return (
     <div className="payment-sticky-cta" aria-live="polite">
       <div>
         <span>Total Payable</span>
         <strong>{money(total)}</strong>
-        <small>{payment === "Razorpay" ? "Secure online checkout" : "Cash on delivery"}</small>
+        <small>Secure online checkout</small>
       </div>
       <button className="primary-button" disabled={disabled}>{label}</button>
     </div>

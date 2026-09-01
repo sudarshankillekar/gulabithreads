@@ -1413,6 +1413,8 @@ async def list_customers(authorization: str | None = Header(default=None)) -> li
 @app.post("/api/orders", response_model=Order, status_code=201)
 async def create_order(payload: OrderCreate) -> dict:
     enforce_rate_limit(f"order-create:{payload.idempotency_key or payload.customer_phone or payload.customer_email or 'anonymous'}", limit=20, window_seconds=300)
+    if payload.payment_method != "Razorpay":
+        raise HTTPException(status_code=400, detail="Only online payment is available")
     existing = await existing_order_for_key(payload.idempotency_key)
     if existing is not None:
         return existing

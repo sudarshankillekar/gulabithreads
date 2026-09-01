@@ -37,11 +37,11 @@ p { color: var(--muted); line-height: 1.6; }
 .secondary-button:hover { background: var(--surface-low); }
 .full { width: 100%; }
 .button-row { display: flex; flex-wrap: wrap; gap: 18px; }
-.shipping-bar { position: fixed; z-index: 55; top: 0; left: 0; right: 0; min-height: 34px; display: grid; place-items: center; overflow: hidden; padding-inline: 16px; background: var(--craft-deep); color: white; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 700; }
+.shipping-bar { position: fixed; z-index: 130; top: 0; left: 0; right: 0; min-height: 34px; display: grid; place-items: center; overflow: hidden; padding-inline: 16px; background: var(--craft-deep); color: white; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 700; }
 .shipping-promo { grid-area: 1 / 1; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding-inline: 8px; white-space: nowrap; opacity: 0; pointer-events: none; transform: translateX(-34px); animation: promoRotateOne 8s ease-in-out infinite; will-change: opacity, transform; }
 .shipping-promo-two { animation-name: promoRotateTwo; }
 .shipping-promo-mobile { display: none; }
-.store-nav { position: fixed; z-index: 50; top: 34px; left: 0; right: 0; min-height: 88px; padding: 14px clamp(20px, 4vw, 64px); display: flex; align-items: center; justify-content: space-between; gap: 18px; background: var(--craft); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,255,255,.22); box-shadow: 0 8px 22px rgba(133,0,74,.12); }
+.store-nav { position: fixed; z-index: 120; top: 34px; left: 0; right: 0; min-height: 88px; padding: 14px clamp(20px, 4vw, 64px); display: flex; align-items: center; justify-content: space-between; gap: 18px; background: var(--craft); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,255,255,.22); box-shadow: 0 8px 22px rgba(133,0,74,.12); }
 .brand { flex: 0 0 auto; font-family: "Playfair Display", serif; font-size: clamp(24px, 3vw, 32px); color: white; font-style: italic; }
 .brand-mark { display: grid; gap: 2px; text-align: left; justify-items: start; }
 .brand-logo-mark.gulabi-logo { width: 42px; height: 32px; line-height: 1; }
@@ -452,11 +452,11 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .store-nav { min-height: 78px; padding-inline: 22px; }
   .store-nav .menu { flex: 0 0 40px; width: 40px; height: 40px; }
   .store-nav .brand { margin-right: auto; }
-  .nav-links { position: fixed; z-index: 75; top: 112px; bottom: auto; left: 0; right: auto; width: min(330px, 84vw); height: calc(100dvh - 112px); max-height: none; display: flex; flex-direction: column; justify-content: start; align-items: stretch; gap: 8px; overflow-y: auto; background: var(--cream); padding: 24px 22px 26px; border-right: 1px solid var(--outline); box-shadow: var(--shadow); transform: translateX(-105%); transition: transform .25s ease; }
+  .nav-links { position: fixed; z-index: 125; top: 112px; bottom: 0; left: 0; right: auto; width: min(330px, 84vw); height: calc(100dvh - 112px); max-height: none; display: flex; flex-direction: column; justify-content: start; align-items: stretch; gap: 8px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--cream); padding: 24px 22px 26px; border-right: 1px solid var(--outline); border-radius: 0 0 18px 0; box-shadow: 24px 0 48px rgba(92,42,67,.22); transform: translateX(-105%); transition: transform .25s ease; }
   .nav-links.open { transform: translateX(0); }
   .nav-drawer-title { display: block; margin-bottom: 10px; color: var(--primary); font-family: "Playfair Display", serif; font-size: 28px; font-weight: 700; }
   .nav-links button { min-height: 46px; color: var(--primary); font-size: 12px; text-align: left; white-space: normal; border-bottom: 1px solid rgba(123,84,85,.12); }
-  .nav-scrim.open { display: block; position: fixed; z-index: 45; inset: 112px 0 0; background: rgba(27,28,28,.28); backdrop-filter: blur(1px); }
+  .nav-scrim.open { display: block; position: fixed; z-index: 115; inset: 112px 0 0; background: rgba(27,28,28,.34); backdrop-filter: blur(2px); }
   .menu { display: grid !important; }
   .hero { min-height: 760px; align-items: end; }
   .hero::after { background: linear-gradient(0deg, rgba(255,246,234,.96) 0%, rgba(255,246,234,.72) 48%, rgba(255,246,234,.08)); }
@@ -522,7 +522,7 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .nav-actions { grid-column: 3; justify-self: end; gap: 8px; color: var(--text); }
   .nav-actions span { background: var(--craft); color: white; }
   .nav-actions button[aria-label="Search"] { display: none; }
-  .nav-links { top: 118px; width: min(300px, 84vw); height: calc(100dvh - 118px); padding-top: 22px; }
+  .nav-links { top: 118px; width: min(300px, 78vw); height: calc(100dvh - 118px); padding: 22px 20px calc(26px + env(safe-area-inset-bottom)); }
   .nav-scrim.open { inset: 118px 0 0; }
   .hero { padding-top: 120px; min-height: 720px; }
   .handcrafted-hero { min-height: auto; padding: 118px 10px 0; background: linear-gradient(180deg, #fffaf7, #fff7f2); }

@@ -1470,6 +1470,8 @@ async def list_customers(authorization: str | None = Header(default=None)) -> li
         name = address.get("full_name") or order.get("customer") or "Guest Customer"
         phone = order.get("customer_phone") or address.get("phone")
         email = order.get("customer_email") or address.get("email")
+        if not address and not phone and not email:
+            continue
         key = customer_key(name, phone, email)
         profile = profiles.get(key, {})
         row = customers.setdefault(

@@ -681,6 +681,7 @@ function deriveCustomersFromOrders(orders: OrderRow[]): CustomerRecord[] {
     const address = order.address;
     const email = (order.customer_email || address?.email || "").trim().toLowerCase();
     const phone = (order.customer_phone || address?.phone || "").trim();
+    if (!address && !email && !phone) return;
     const name = (address?.full_name || order.customer || "Guest Customer").trim();
     const key = email || phone || name.toLowerCase();
     const current = rows.get(key) || {

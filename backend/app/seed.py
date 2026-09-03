@@ -126,7 +126,25 @@ for product in DEFAULT_PRODUCTS:
     if not product.gallery:
         product.gallery = [product.image, DEFAULT_PRODUCTS[0].gallery[1], DEFAULT_PRODUCTS[0].gallery[2]]
 
+LEGACY_SAMPLE_ORDERS = [
+    {"id": "GT-1048", "customer": "Anika Rao"},
+    {"id": "GT-1047", "customer": "Maya Iyer"},
+    {"id": "GT-1046", "customer": "Leela Shah"},
+    {"id": "GT-1045", "customer": "Noor Khan"},
+]
+
+
+async def remove_legacy_sample_orders(db) -> None:
+    sample_order_ids = [order["id"] for order in LEGACY_SAMPLE_ORDERS]
+    for order in LEGACY_SAMPLE_ORDERS:
+        await db.orders.delete_many(order)
+    await db.customers.delete_many({"last_order_id": {"$in": sample_order_ids}})
+    await db.payment_intents.delete_many({"order_id": {"$in": sample_order_ids}})
+    await db.order_notifications.delete_many({"order_id": {"$in": sample_order_ids}})
+
+
 async def seed_database(db) -> None:
+    await remove_legacy_sample_orders(db)
     for category in DEFAULT_CATEGORIES:
         await db.categories.update_one(
             {"slug": category.slug},

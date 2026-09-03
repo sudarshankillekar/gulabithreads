@@ -1,4 +1,4 @@
-from .models import CategoryCreate, Order, Product
+from .models import CategoryCreate, Product
 
 CATEGORY_NAMES = [
     "Tote bag 18*18",
@@ -126,14 +126,6 @@ for product in DEFAULT_PRODUCTS:
     if not product.gallery:
         product.gallery = [product.image, DEFAULT_PRODUCTS[0].gallery[1], DEFAULT_PRODUCTS[0].gallery[2]]
 
-DEFAULT_ORDERS = [
-    Order(id="GT-1048", customer="Anika Rao", items=[{"slug": "aria-silk-tote", "qty": 1}], product="The Aria Silk Tote", total=1250, subtotal=1250, tax=0, shipping_cost=0, status="Processing", date="Jul 12"),
-    Order(id="GT-1047", customer="Maya Iyer", items=[{"slug": "heritage-silk-tote", "qty": 1}], product="Heritage Silk Tote", total=980, subtotal=980, tax=0, shipping_cost=0, status="Shipped", date="Jul 11"),
-    Order(id="GT-1046", customer="Leela Shah", items=[{"slug": "weekender-tote", "qty": 1}], product="The Weekender Tote", total=450, subtotal=450, tax=0, shipping_cost=0, status="Delivered", date="Jul 10"),
-    Order(id="GT-1045", customer="Noor Khan", items=[{"slug": "rose-gala-clutch", "qty": 1}], product="Rose Gold Gala Clutch", total=380, subtotal=380, tax=0, shipping_cost=0, status="Pending", date="Jul 09"),
-]
-
-
 async def seed_database(db) -> None:
     for category in DEFAULT_CATEGORIES:
         await db.categories.update_one(
@@ -156,5 +148,3 @@ async def seed_database(db) -> None:
             {"$set": {"seeded": True}},
             upsert=True,
         )
-    if await db.orders.count_documents({}) == 0:
-        await db.orders.insert_many([order.model_dump() for order in DEFAULT_ORDERS])

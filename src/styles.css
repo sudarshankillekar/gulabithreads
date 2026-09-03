@@ -437,6 +437,9 @@ td small { display: block; color: var(--muted); margin-top: 2px; }
 .category-name-cell.depth-2 { padding-left: 54px; }
 .category-name-cell.depth-3 { padding-left: 74px; }
 td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; vertical-align: middle; margin-right: 12px; }
+.empty-table-state { min-height: 90px; display: grid; place-items: center; gap: 4px; text-align: center; }
+.empty-table-state strong { color: var(--text); font-family: "Playfair Display", serif; font-size: 24px; }
+.empty-table-state small { color: var(--muted); }
 .table-actions { display: inline-flex; align-items: center; gap: 8px; }
 .table-actions button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(130,116,115,.2); border-radius: 6px; color: var(--primary); transition: .2s ease; }
 .table-actions button:hover:not(:disabled) { background: var(--surface-low); border-color: rgba(204,89,128,.45); }

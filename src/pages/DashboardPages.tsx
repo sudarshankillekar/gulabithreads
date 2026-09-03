@@ -286,9 +286,11 @@ type AdminSection = "dashboard" | "products" | "categories" | "inventory" | "ord
 export function DashboardPage({ role, section, products, orders, customers, categories, onOrderStatusUpdate, onProductCreate, onProductUpdate, onProductDelete, adminName, onLogout }: { role: "seller" | "admin"; section: AdminSection; products: Product[]; orders: OrderRow[]; customers: CustomerRecord[]; categories: CategoryRecord[]; onOrderStatusUpdate: (orderId: string, status: OrderStatus) => Promise<OrderRow>; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void>; adminName?: string; onLogout?: () => void }) {
   const activeCategoryRows = categories.filter((category) => category.active && !category.archived);
   const categoryNames = activeCategoryRows.length ? activeCategoryRows.map((category) => category.name) : [...fallbackCategories];
+  const dashboardRevenue = orders.filter((order) => order.status !== "Cancelled").reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const pendingOrders = orders.filter((order) => ["Pending", "Processing"].includes(order.status)).length;
   return (
     <DashboardShell role={role} section={section} displayName={adminName} onLogout={onLogout}>
-      {section === "dashboard" && <><section className="welcome"><h1>{role === "admin" ? "Admin Overview" : "Seller Portal"}</h1><p>{role === "admin" ? "Monitor catalog health, approvals, and boutique order flow." : "Manage your catalog, monitor inventory health, and curate your boutique."}</p></section><div className="metric-grid"><Metric icon={<ShoppingBag />} label="Revenue" value="₹42.8k" /><Metric icon={<Package />} label="Active Listings" value={String(products.length)} /><Metric icon={<Bell />} label="Pending Review" value="2" /><Metric icon={<BarChart3 />} label="Conversion" value="6.8%" /></div><OrdersTable orders={orders} compact /></>}
+      {section === "dashboard" && <><section className="welcome"><h1>{role === "admin" ? "Admin Overview" : "Seller Portal"}</h1><p>{role === "admin" ? "Monitor catalog health, approvals, and boutique order flow." : "Manage your catalog, monitor inventory health, and curate your boutique."}</p></section><div className="metric-grid"><Metric icon={<ShoppingBag />} label="Revenue" value={money(dashboardRevenue)} /><Metric icon={<Package />} label="Active Listings" value={String(products.length)} /><Metric icon={<Bell />} label="Pending Orders" value={String(pendingOrders)} /><Metric icon={<BarChart3 />} label="Total Orders" value={String(orders.length)} /></div><OrdersTable orders={orders} compact /></>}
       {section === "products" && <ProductsManager products={products} categories={categoryNames} categoryRecords={activeCategoryRows} admin={role === "admin"} onProductCreate={onProductCreate} onProductUpdate={onProductUpdate} onProductDelete={onProductDelete} />}
       {section === "categories" && <CategoriesManager initialCategories={categories} />}
       {section === "inventory" && <InventoryManager products={products} />}
@@ -779,6 +781,7 @@ function OrdersTable({ orders, compact, onOrderStatusUpdate, products = [] }: { 
       <table>
         <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Total</th><th>Status</th></tr></thead>
         <tbody>
+          {!rows.length && <tr><td colSpan={5}><div className="empty-table-state"><strong>No orders yet</strong><small>Real customer orders will appear here after checkout.</small></div></td></tr>}
           {rows.map((order) => {
             const isOpen = expanded === order.id;
             return (

@@ -6,7 +6,6 @@ from email.message import EmailMessage
 import hashlib
 import hmac
 import json
-from math import ceil
 import os
 import secrets
 import smtplib
@@ -1557,13 +1556,16 @@ async def dashboard_metrics(authorization: str | None = Header(default=None)) ->
     db = get_db()
     orders = await db.orders.find({}).to_list(length=None)
     products = await db.products.find({}).to_list(length=None)
-    revenue = sum(float(order.get("total", 0)) for order in orders)
+    revenue = sum(float(order.get("total", 0)) for order in orders if order.get("status") != "Cancelled")
+    pending_orders = sum(1 for order in orders if order.get("status") in {"Pending", "Processing"})
     low_stock = sum(1 for product in products if int(product.get("stock", 0)) < 5)
     return {
         "revenue": revenue,
         "orders": len(orders),
+        "pendingOrders": pending_orders,
         "products": len(products),
         "lowStock": low_stock,
-        "conversion": "6.8%",
-        "revenueLabel": f"₹{ceil(revenue / 1000)}k",
+        "conversion": 0,
+        "conversionLabel": "0%",
+        "revenueLabel": f"₹{revenue:,.0f}",
     }

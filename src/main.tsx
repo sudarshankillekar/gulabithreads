@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { apiRequest } from "./lib/api";
 import { useLocalState } from "./hooks/useLocalState";
 import { usePath } from "./hooks/usePath";
-import { categories as fallbackCategories, products, orders } from "./data/catalog";
+import { categories as fallbackCategories, products } from "./data/catalog";
 import { navigate } from "./lib/navigation";
 import { discountedProductPrice } from "./lib/pricing";
 import { AccountPage, DashboardPage } from "./pages/DashboardPages";
@@ -26,7 +26,7 @@ function App() {
   const path = usePath();
   const [catalog, setCatalog] = useState<Product[]>([]);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
-  const [orderRows, setOrderRows] = useState<OrderRow[]>(orders);
+  const [orderRows, setOrderRows] = useState<OrderRow[]>([]);
   const [categoryRows, setCategoryRows] = useState<CategoryRecord[]>([]);
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [cart, setCart] = useLocalState<CartItem[]>("gt-cart", [{ slug: "aria-silk-tote", qty: 1 }]);

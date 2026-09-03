@@ -267,8 +267,9 @@ function App() {
     navigate("/admin/login");
   };
 
-  const categoryNames = categoryRows.length ? categoryRows.filter((category) => category.active && !category.archived).map((category) => category.name) : [...fallbackCategories];
-  const storeProps = { cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, isCustomerAuthed };
+  const activeCategoryRows = categoryRows.filter((category) => category.active && !category.archived);
+  const categoryNames = activeCategoryRows.length ? activeCategoryRows.map((category) => category.name) : [...fallbackCategories];
+  const storeProps = { cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, categoryRecords: activeCategoryRows, isCustomerAuthed };
   const authProps = {
     onLogin: loginCustomer,
     customerAccounts,
@@ -295,9 +296,9 @@ function App() {
     ) : routePath === "/checkout" ? (
       <CheckoutPage {...cartProps} />
     ) : routePath === "/order-confirmation" ? (
-      <OrderConfirmationPage order={lastOrder} cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} />
+      <OrderConfirmationPage order={lastOrder} cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} categoryRecords={activeCategoryRows} />
     ) : routePath === "/track" ? (
-      <TrackOrderPage cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} />
+      <TrackOrderPage cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categoryNames} categoryRecords={activeCategoryRows} />
     ) : routePath === "/reset-password" ? (
       customerSession ? <AccountPage orders={orderRows} customerName={customerSession.name} customerPhone={customerSession.phone} customerEmail={customerSession.email} customerOrderIds={customerOrderIds} section="orders" products={catalog} wishlist={wishlist} addCart={addCart} toggleWish={toggleWish} onLogout={logoutCustomer} /> : <LoginPage mode="customer" {...authProps} />
     ) : routePath === "/login" ? (

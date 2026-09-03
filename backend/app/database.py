@@ -1,15 +1,27 @@
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.errors import OperationFailure
+from urllib.parse import parse_qs, urlparse
 
 from .config import settings
 
 client: AsyncIOMotorClient | None = None
 
 
+def mongo_uses_tls(uri: str) -> bool:
+    parsed = urlparse(uri)
+    if parsed.scheme == "mongodb+srv":
+        return True
+    options = {key.lower(): values[-1].lower() for key, values in parse_qs(parsed.query).items() if values}
+    return options.get("tls") == "true" or options.get("ssl") == "true"
+
+
 async def connect() -> None:
     global client
-    client = AsyncIOMotorClient(settings.mongo_uri, serverSelectionTimeoutMS=20000, tlsCAFile=certifi.where())
+    client_options = {"serverSelectionTimeoutMS": 20000}
+    if mongo_uses_tls(settings.mongo_uri):
+        client_options["tlsCAFile"] = certifi.where()
+    client = AsyncIOMotorClient(settings.mongo_uri, **client_options)
     await client.admin.command("ping")
     db = get_db()
     await db.products.create_index("slug", unique=True)

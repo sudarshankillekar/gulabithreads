@@ -13,6 +13,7 @@ class Product(BaseModel):
     discount_price: float = Field(default=0, ge=0)
     discount_percent: float | None = Field(default=None, ge=0, le=99)
     category: Category
+    sub_category: str | None = None
     color: str
     material: str
     rating: int = Field(ge=0, le=5)

@@ -21,6 +21,7 @@ export type Product = {
   discount_price?: number;
   discount_percent?: number;
   category: Category;
+  sub_category?: string;
   color: string;
   material: string;
   rating: number;
@@ -112,6 +113,7 @@ export type StoreProps = {
   products: Product[];
   orders: OrderRow[];
   categories: string[];
+  categoryRecords?: CategoryRecord[];
   cartCount: number;
   wishlist: string[];
   addCart: (slug: string) => void;

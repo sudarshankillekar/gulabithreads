@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { BarChart3, Bell, CreditCard, Download, Eye, Heart, Home, LayoutDashboard, LogOut, MapPin, Menu, Package, PackageCheck, Pencil, Plus, Search, Settings, ShoppingBag, Tags, Trash2, Upload, User, Warehouse } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { PriceDisplay } from "../components/PriceDisplay";
@@ -7,6 +7,7 @@ import { money, slugify } from "../lib/format";
 import { discountedProductPrice, discountPercent } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
 import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
+import { buildCategoryTree, categoryDisplayRecords, categoryPathLabel, flattenCategoryTree, isCategoryDescendant } from "../lib/categories";
 import type { Category, CategoryRecord, CustomerRecord, OrderRow, OrderStatus, Product, ProductInput } from "../types";
 
 type AccountSection = "orders" | "wishlist" | "addresses" | "profile";
@@ -283,11 +284,12 @@ function CustomerProfile({ customerName }: { customerName: string }) {
 type AdminSection = "dashboard" | "products" | "categories" | "inventory" | "orders" | "customers";
 
 export function DashboardPage({ role, section, products, orders, customers, categories, onOrderStatusUpdate, onProductCreate, onProductUpdate, onProductDelete, adminName, onLogout }: { role: "seller" | "admin"; section: AdminSection; products: Product[]; orders: OrderRow[]; customers: CustomerRecord[]; categories: CategoryRecord[]; onOrderStatusUpdate: (orderId: string, status: OrderStatus) => Promise<OrderRow>; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void>; adminName?: string; onLogout?: () => void }) {
-  const categoryNames = categories.length ? categories.filter((category) => category.active && !category.archived).map((category) => category.name) : [...fallbackCategories];
+  const activeCategoryRows = categories.filter((category) => category.active && !category.archived);
+  const categoryNames = activeCategoryRows.length ? activeCategoryRows.map((category) => category.name) : [...fallbackCategories];
   return (
     <DashboardShell role={role} section={section} displayName={adminName} onLogout={onLogout}>
       {section === "dashboard" && <><section className="welcome"><h1>{role === "admin" ? "Admin Overview" : "Seller Portal"}</h1><p>{role === "admin" ? "Monitor catalog health, approvals, and boutique order flow." : "Manage your catalog, monitor inventory health, and curate your boutique."}</p></section><div className="metric-grid"><Metric icon={<ShoppingBag />} label="Revenue" value="₹42.8k" /><Metric icon={<Package />} label="Active Listings" value={String(products.length)} /><Metric icon={<Bell />} label="Pending Review" value="2" /><Metric icon={<BarChart3 />} label="Conversion" value="6.8%" /></div><OrdersTable orders={orders} compact /></>}
-      {section === "products" && <ProductsManager products={products} categories={categoryNames} admin={role === "admin"} onProductCreate={onProductCreate} onProductUpdate={onProductUpdate} onProductDelete={onProductDelete} />}
+      {section === "products" && <ProductsManager products={products} categories={categoryNames} categoryRecords={activeCategoryRows} admin={role === "admin"} onProductCreate={onProductCreate} onProductUpdate={onProductUpdate} onProductDelete={onProductDelete} />}
       {section === "categories" && <CategoriesManager initialCategories={categories} />}
       {section === "inventory" && <InventoryManager products={products} />}
       {section === "orders" && <OrdersManager orders={orders} onOrderStatusUpdate={onOrderStatusUpdate} />}
@@ -342,7 +344,7 @@ function galleryFromText(value: string) {
   return uniqueImageUrls(value.split(/\r?\n+/));
 }
 
-function ProductsManager({ products, categories, admin, onProductCreate, onProductUpdate, onProductDelete }: { products: Product[]; categories: string[]; admin?: boolean; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void> }) {
+function ProductsManager({ products, categories, categoryRecords = [], admin, onProductCreate, onProductUpdate, onProductDelete }: { products: Product[]; categories: string[]; categoryRecords?: CategoryRecord[]; admin?: boolean; onProductCreate: (product: ProductInput) => Promise<Product>; onProductUpdate: (slug: string, product: ProductInput) => Promise<Product>; onProductDelete: (slug: string) => Promise<void> }) {
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -352,8 +354,13 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
-  const availableCategories = categories.length ? categories : [...fallbackCategories];
-  const rows = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
+  const availableCategories = useMemo(() => categories.length ? categories : [...fallbackCategories], [categories]);
+  const categoryRecordsForSelect = useMemo(() => categoryDisplayRecords(categoryRecords, availableCategories), [availableCategories, categoryRecords]);
+  const categoryOptions = useMemo(() => flattenCategoryTree(buildCategoryTree(categoryRecordsForSelect)), [categoryRecordsForSelect]);
+  const categoryLabelByName = useMemo(() => new Map(categoryRecordsForSelect.map((category) => [category.name, categoryPathLabel(category, categoryRecordsForSelect)])), [categoryRecordsForSelect]);
+  const defaultCategory = categoryOptions[0]?.name || availableCategories[0] || fallbackCategories[0];
+  const normalizedQuery = query.toLowerCase();
+  const rows = products.filter((product) => [product.name, product.category, product.sub_category || ""].some((value) => value.toLowerCase().includes(normalizedQuery)));
   const lowStock = products.filter((product) => product.stock < 5).length;
   const inventoryValue = products.reduce((sum, product) => sum + discountedProductPrice(product) * product.stock, 0);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -372,7 +379,8 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       name,
       price: Number(form.get("price") || 0),
       discount_price: Number(form.get("discount_price") || 0),
-      category: String(form.get("category") || availableCategories[0]) as Category,
+      category: String(form.get("category") || defaultCategory) as Category,
+      sub_category: String(form.get("sub_category") || "").trim() || undefined,
       color: "",
       material: "",
       rating: Number(form.get("rating") || 4),
@@ -473,7 +481,8 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
     <div className="metric-grid product-metrics"><Metric icon={<ShoppingBag />} label="Total Products" value={String(products.length)} /><Metric icon={<Package />} label="Inventory Units" value={String(products.reduce((sum, product) => sum + product.stock, 0))} /><Metric icon={<Bell />} label="Low Stock" value={String(lowStock)} /><Metric icon={<BarChart3 />} label="Stock Value" value={money(inventoryValue)} /></div>
     {admin && showForm && <form className="admin-product-form" key={editingProduct?.slug || "create"} onSubmit={submit}>
       <div className="form-section-title"><h2>{editingProduct ? "Edit Product" : "Add Product"}</h2><p>{editingProduct ? "Update product details in MongoDB and refresh the storefront immediately." : "New products are saved through the Python API into MongoDB."}</p></div>
-      <label>Name<input name="name" required placeholder="The Jaipur Market Tote" defaultValue={editingProduct?.name} /></label><label>Slug<input name="slug" placeholder="jaipur-market-tote" defaultValue={editingProduct?.slug} /></label><label>Category<select name="category" defaultValue={editingProduct?.category || availableCategories[0]}>{availableCategories.map((category) => <option key={category}>{category}</option>)}</select></label>
+      <label>Name<input name="name" required placeholder="The Jaipur Market Tote" defaultValue={editingProduct?.name} /></label><label>Slug<input name="slug" placeholder="jaipur-market-tote" defaultValue={editingProduct?.slug} /></label><label>Category<select name="category" defaultValue={editingProduct?.category || defaultCategory}>{categoryOptions.map((category) => <option key={category.slug} value={category.name}>{categoryPathLabel(category, categoryRecordsForSelect)}</option>)}</select></label>
+      <label>Sub Category (Optional)<input name="sub_category" placeholder="Beach bags with zipper" defaultValue={editingProduct?.sub_category || ""} /></label>
       <label>Original Price<input name="price" required type="number" min="0" step="1" placeholder="999" defaultValue={editingProduct?.price} /></label><label>Discount Price<input name="discount_price" type="number" min="0" step="1" placeholder="526" defaultValue={editingProduct?.discount_price || ""} /></label><label>Stock<input name="stock" required type="number" min="0" step="1" placeholder="24" defaultValue={editingProduct?.stock} /></label>
       <label>Rating<input name="rating" type="number" min="0" max="5" step="1" defaultValue={editingProduct?.rating || 4} /></label><label>Badge<input name="badge" placeholder="New In" defaultValue={editingProduct?.badge} /></label>
       <div className="wide image-upload-field">
@@ -500,7 +509,7 @@ function ProductsManager({ products, categories, admin, onProductCreate, onProdu
       <div className="form-actions"><button type="button" className="secondary-button" onClick={cancelForm}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : editingProduct ? "Update Product" : "Save Product"}</button></div>
     </form>}
     <label className="dash-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products" /></label>
-    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>{rows.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td><PriceDisplay product={product} /></td><td>{product.stock}</td><td><div className="table-actions"><button aria-label={`View ${product.name}`} onClick={() => navigate(`/product/${product.slug}`)}><Eye size={16} /></button>{admin && <button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Pencil size={16} /></button>}{admin && <button aria-label={`Delete ${product.name}`} disabled={deletingSlug === product.slug} onClick={() => deleteProduct(product)}><Trash2 size={16} /></button>}</div></td></tr>)}</tbody></table></div>
+    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>{rows.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td className="admin-category-cell"><strong>{categoryLabelByName.get(product.category) || product.category}</strong>{product.sub_category && <small>Sub category: {product.sub_category}</small>}</td><td><PriceDisplay product={product} /></td><td>{product.stock}</td><td><div className="table-actions"><button aria-label={`View ${product.name}`} onClick={() => navigate(`/product/${product.slug}`)}><Eye size={16} /></button>{admin && <button aria-label={`Edit ${product.name}`} onClick={() => startEdit(product)}><Pencil size={16} /></button>}{admin && <button aria-label={`Delete ${product.name}`} disabled={deletingSlug === product.slug} onClick={() => deleteProduct(product)}><Trash2 size={16} /></button>}</div></td></tr>)}</tbody></table></div>
   </>;
 }
 
@@ -534,6 +543,13 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
   const [error, setError] = useState("");
   const [form, setForm] = useState<CategoryFormValues>(categoryDefaults(activeCategories.length + 1));
   const visibleCategories = categories.filter((category) => !category.archived);
+  const categoryTree = useMemo(() => buildCategoryTree(visibleCategories), [visibleCategories]);
+  const flatCategories = useMemo(() => flattenCategoryTree(categoryTree), [categoryTree]);
+  const parentOptions = useMemo(
+    () => visibleCategories.filter((category) => !editing || (category.slug !== editing.slug && !isCategoryDescendant(editing.slug, category.slug, visibleCategories))),
+    [editing, visibleCategories],
+  );
+  const parentSlugSet = useMemo(() => new Set(visibleCategories.map((category) => category.parent_slug).filter(Boolean)), [visibleCategories]);
   const activeCount = visibleCategories.filter((category) => category.active).length;
   const inactiveCount = visibleCategories.length - activeCount;
 
@@ -578,7 +594,16 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const payload = { ...form, slug: form.slug || slugify(form.name), parent_slug: form.parent_slug || null };
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      slug: (form.slug || slugify(form.name)).trim(),
+      description: form.description.trim(),
+      image: form.image.trim(),
+      parent_slug: form.parent_slug || null,
+      seo_title: form.seo_title.trim(),
+      seo_description: form.seo_description.trim(),
+    };
     setSaving(true);
     setError("");
     try {
@@ -606,7 +631,7 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
   };
 
   const archiveCategory = async (category: CategoryRecord) => {
-    if (!window.confirm(`Archive ${category.name}? Categories with products cannot be archived.`)) return;
+    if (!window.confirm(`Archive ${category.name}? Categories with linked products or child categories cannot be archived.`)) return;
     setError("");
     try {
       await apiRequest<CategoryRecord>(`/categories/${category.slug}/archive`, { method: "PATCH" });
@@ -625,6 +650,7 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
       <label>Name<input required value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Tote bag 18*18" /></label>
       <label>Slug<input value={form.slug} onChange={(event) => updateField("slug", event.target.value)} placeholder="tote-bag-18x18" /></label>
       <label>Display Order<input type="number" min="0" value={form.display_order} onChange={(event) => updateField("display_order", Number(event.target.value))} /></label>
+      <label>Parent Category<select value={form.parent_slug || ""} onChange={(event) => updateField("parent_slug", event.target.value || null)}><option value="">No parent category</option>{parentOptions.map((category) => <option key={category.slug} value={category.slug}>{categoryPathLabel(category, visibleCategories)}</option>)}</select><small>Optional. Use this for groups like Tote bag &gt; Medium &gt; 18*18 bag.</small></label>
       <label className="wide">Image URL<input value={form.image} onChange={(event) => updateField("image", event.target.value)} placeholder="https://..." /></label>
       <label className="wide">Description<textarea rows={3} value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Short storefront category description." /></label>
       <label>SEO Title<input value={form.seo_title} onChange={(event) => updateField("seo_title", event.target.value)} placeholder="Handmade tote bags" /></label>
@@ -632,7 +658,7 @@ function CategoriesManager({ initialCategories }: { initialCategories: CategoryR
       <label className="check-label"><input type="checkbox" checked={form.active} onChange={(event) => updateField("active", event.target.checked)} /> Active category</label>
       <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setShowForm(false)}>Cancel</button><button className="primary-button" disabled={saving}>{saving ? "Saving..." : editing ? "Update Category" : "Save Category"}</button></div>
     </form>}
-    <div className="data-table"><table><thead><tr><th>Category</th><th>Slug</th><th>Products</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>{visibleCategories.map((category) => <tr key={category.slug}><td><strong>{category.name}</strong><small>{category.description || "No description"}</small></td><td>{category.slug}</td><td>{category.product_count}</td><td>{category.display_order}</td><td><Status status={category.active ? "Approved" : "Inactive"} /></td><td><div className="table-actions"><button aria-label={`Edit ${category.name}`} onClick={() => startEdit(category)}><Pencil size={16} /></button><button aria-label={`${category.active ? "Disable" : "Enable"} ${category.name}`} onClick={() => toggleStatus(category)}><Eye size={16} /></button><button aria-label={`Archive ${category.name}`} disabled={category.product_count > 0} onClick={() => archiveCategory(category)}><Trash2 size={16} /></button></div></td></tr>)}</tbody></table></div>
+    <div className="data-table"><table><thead><tr><th>Category</th><th>Slug</th><th>Products</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>{flatCategories.map((category) => <tr key={category.slug}><td className={`category-name-cell depth-${Math.min(category.depth, 3)}`}><strong>{category.name}</strong><small>{category.depth > 0 ? categoryPathLabel(category, visibleCategories) : category.description || "No description"}</small></td><td>{category.slug}</td><td>{category.product_count}</td><td>{category.display_order}</td><td><Status status={category.active ? "Approved" : "Inactive"} /></td><td><div className="table-actions"><button aria-label={`Edit ${category.name}`} onClick={() => startEdit(category)}><Pencil size={16} /></button><button aria-label={`${category.active ? "Disable" : "Enable"} ${category.name}`} onClick={() => toggleStatus(category)}><Eye size={16} /></button><button aria-label={`Archive ${category.name}`} disabled={category.product_count > 0 || parentSlugSet.has(category.slug)} onClick={() => archiveCategory(category)}><Trash2 size={16} /></button></div></td></tr>)}</tbody></table></div>
   </>;
 }
 
@@ -643,7 +669,7 @@ function InventoryManager({ products }: { products: Product[] }) {
   return <>
     <div className="dash-heading"><div><h1>Inventory</h1><p>Monitor stock levels, inventory value, and low-stock products before replenishment.</p></div></div>
     <div className="metric-grid product-metrics"><Metric icon={<Warehouse />} label="Inventory Units" value={String(units)} /><Metric icon={<Bell />} label="Low Stock" value={String(lowStock.length)} /><Metric icon={<Package />} label="Out Of Stock" value={String(outOfStock.length)} /><Metric icon={<BarChart3 />} label="Stock Value" value={money(products.reduce((sum, product) => sum + discountedProductPrice(product) * product.stock, 0))} /></div>
-    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Unit Price</th><th>Value</th><th>Status</th></tr></thead><tbody>{products.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}</td><td>{product.stock}</td><td><PriceDisplay product={product} /></td><td>{money(discountedProductPrice(product) * product.stock)}{discountPercent(product) > 0 && <small>Sale stock value</small>}</td><td><Status status={product.stock === 0 || product.stock < 5 ? "Pending" : "Approved"} /></td></tr>)}</tbody></table></div>
+    <div className="data-table"><table><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Unit Price</th><th>Value</th><th>Status</th></tr></thead><tbody>{products.map((product) => <tr key={product.slug}><td><img src={product.image} alt="" />{product.name}</td><td>{product.category}{product.sub_category && <small>{product.sub_category}</small>}</td><td>{product.stock}</td><td><PriceDisplay product={product} /></td><td>{money(discountedProductPrice(product) * product.stock)}{discountPercent(product) > 0 && <small>Sale stock value</small>}</td><td><Status status={product.stock === 0 || product.stock < 5 ? "Pending" : "Approved"} /></td></tr>)}</tbody></table></div>
   </>;
 }
 

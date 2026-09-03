@@ -29,10 +29,11 @@ import { money } from "../lib/format";
 import { discountedProductPrice } from "../lib/pricing";
 import { navigate } from "../lib/navigation";
 import { lookupIndianPincode, normalizePincode, resolveIndianPincode } from "../lib/pincode";
+import { buildCategoryTree, categoryDisplayRecords, categoryNameSetWithDescendants, displayCategoryName, displayCategoryPath, flattenCategoryTree } from "../lib/categories";
 import { bagImg, categoryHeroImg } from "../data/catalog";
 import { PriceDisplay } from "../components/PriceDisplay";
 import { GulabiLogo } from "../components/GulabiLogo";
-import type { AddressPayload, AuthSession, CartProps, Category, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
+import type { AddressPayload, AuthSession, CartProps, Category, CategoryRecord, CheckoutPrice, CheckoutStep, CustomerAccount, OrderRow, Product, StoreProps } from "../types";
 
 const CONTACT_PHONE = "7349583334";
 const INSTAGRAM_URL = "https://www.instagram.com/gulabi.threads_?utm_source=ig_web_button_share_sheet";
@@ -154,13 +155,19 @@ function saveCheckoutAddress(address: AddressPayload) {
   ]));
 }
 
-function categoryFromUrl(categories: string[]): Category | "All" {
+function categoryFromUrl(categories: string[], records?: CategoryRecord[]): Category | "All" {
   const category = new URLSearchParams(window.location.search).get("category") || "";
-  return categories.includes(category) ? category : "All";
+  const allowedCategories = new Set([
+    ...categories,
+    ...(records || []).filter((item) => item.active && !item.archived).map((item) => item.name),
+  ]);
+  return allowedCategories.has(category) ? category : "All";
 }
 
-export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories">) {
+export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories, categoryRecords }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories" | "categoryRecords">) {
   const [open, setOpen] = useState(false);
+  const navRecords = useMemo(() => categoryDisplayRecords(categoryRecords, categories), [categoryRecords, categories]);
+  const navTree = useMemo(() => buildCategoryTree(navRecords), [navRecords]);
   return (
     <>
       <div className="shipping-bar" aria-label="Gulabi Threads offers">
@@ -177,7 +184,21 @@ export function StoreNav({ cartCount, wishlist, isCustomerAuthed, categories }: 
         </button>
         <nav className={open ? "nav-links open" : "nav-links"}>
           <span className="nav-drawer-title">Categories</span>
-          {categories.map((label) => <button key={label} onClick={() => { setOpen(false); navigate(shopPath(label)); }}>{label}</button>)}
+          {navTree.map((item) => {
+            const childItems = flattenCategoryTree(item.children, [item.name]);
+            return (
+              <div className={childItems.length ? "nav-category has-children" : "nav-category"} key={item.slug}>
+                <button className="nav-root-link" title={displayCategoryName(item.name)} onClick={() => { setOpen(false); navigate(shopPath(item.name)); }}>{displayCategoryName(item.name)}</button>
+                {childItems.length > 0 && (
+                  <div className="nav-submenu" role="menu" aria-label={`${displayCategoryName(item.name)} sub categories`}>
+                    {childItems.map((child) => (
+                      <button className={`nav-submenu-link nav-link-depth-${Math.min(child.depth, 3)}`} key={child.slug} role="menuitem" title={displayCategoryPath(child.path)} onClick={() => { setOpen(false); navigate(shopPath(child.name)); }}>{displayCategoryName(child.name)}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
         <div className="nav-actions">
           <button aria-label="Search"><Search size={19} /></button>
@@ -273,7 +294,7 @@ export function HomePage(props: StoreProps) {
 
   return (
     <div>
-      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
+      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} categoryRecords={props.categoryRecords} />
       <section className="hero handcrafted-hero">
         <div
           className={`hero-slider hero-slider-${activeSlide + 1}`}
@@ -318,24 +339,33 @@ function SectionTitle({ eyebrow, title, action }: { eyebrow?: string; title: str
 }
 
 export function ShopPage(props: StoreProps) {
-  const [category, setCategory] = useState<Category | "All">(() => categoryFromUrl(props.categories));
+  const categoryRecords = useMemo(() => categoryDisplayRecords(props.categoryRecords, props.categories), [props.categoryRecords, props.categories]);
+  const categoryOptions = useMemo(() => flattenCategoryTree(buildCategoryTree(categoryRecords)), [categoryRecords]);
+  const [category, setCategory] = useState<Category | "All">(() => categoryFromUrl(props.categories, props.categoryRecords));
   const [query, setQuery] = useState("");
   const [max, setMax] = useState(1300);
   const [inStock, setInStock] = useState(false);
   const [mobileFilters, setMobileFilters] = useState(false);
-  const filtered = props.products.filter((p) => (category === "All" || p.category === category) && discountedProductPrice(p) <= max && (!inStock || p.stock > 0) && p.name.toLowerCase().includes(query.toLowerCase()));
+  const normalizedQuery = query.toLowerCase();
+  const selectedCategoryNames = useMemo(() => category === "All" ? null : categoryNameSetWithDescendants(category, categoryRecords), [category, categoryRecords]);
+  const filtered = props.products.filter((p) => (!selectedCategoryNames || selectedCategoryNames.has(p.category)) && discountedProductPrice(p) <= max && (!inStock || p.stock > 0) && [p.name, p.category, p.sub_category || ""].some((value) => value.toLowerCase().includes(normalizedQuery)));
+
+  useEffect(() => {
+    setCategory(categoryFromUrl(props.categories, props.categoryRecords));
+  }, [props.categories, props.categoryRecords]);
+
   const filters = (
     <aside className="filters">
       <div className="filter-title"><h3>Filters</h3><button onClick={() => { setCategory("All"); setQuery(""); setMax(1300); setInStock(false); navigate(shopPath("All")); }}>Clear All</button></div>
       <label className="search-box"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search collection" /></label>
-      <div className="filter-group"><span><Package size={18} />Category</span>{(["All", ...props.categories] as const).map((item) => <button className={category === item ? "active" : ""} key={item} onClick={() => { setCategory(item); navigate(shopPath(item)); }}>{item}</button>)}</div>
+      <div className="filter-group"><span><Package size={18} />Category</span><button className={category === "All" ? "category-filter-option depth-0 active" : "category-filter-option depth-0"} key="All" onClick={() => { setCategory("All"); navigate(shopPath("All")); }}>All</button>{categoryOptions.map((item) => <button className={`${category === item.name ? "active " : ""}category-filter-option depth-${Math.min(item.depth, 3)}`} key={item.slug} title={displayCategoryPath(item.path)} onClick={() => { setCategory(item.name); setMobileFilters(false); navigate(shopPath(item.name)); }}>{displayCategoryName(item.name)}</button>)}</div>
       <div className="filter-group"><span><SlidersHorizontal size={18} />Price</span><input type="range" min="120" max="1300" value={max} onChange={(e) => setMax(Number(e.target.value))} /><p>Up to {money(max)}</p></div>
       <label className="checkbox"><input type="checkbox" checked={inStock} onChange={(e) => setInStock(e.target.checked)} /> In stock only</label>
     </aside>
   );
   return (
     <div>
-      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
+      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} categoryRecords={props.categoryRecords} />
       <header className="shop-hero"><img src={categoryHeroImg} alt="Handcrafted Gulabi Threads category collection" /><div><span className="eyebrow">Handcrafted collection</span><h1>Categories</h1></div></header>
       <main className="shop-layout">
         {filters}
@@ -397,7 +427,7 @@ function ProductDescription({ description }: { description: string }) {
   );
 }
 
-export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish, isCustomerAuthed, categories }: { product: Product } & StoreProps) {
+export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish, isCustomerAuthed, categories, categoryRecords }: { product: Product } & StoreProps) {
   const allGalleryImages = useMemo(
     () => Array.from(new Set([product.image, ...(product.gallery || [])].map((url) => url.trim()).filter(Boolean))),
     [product.image, product.gallery],
@@ -423,7 +453,7 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
 
   return (
     <div>
-      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} />
+      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} categoryRecords={categoryRecords} />
       <main className="product-detail">
         <nav className="breadcrumbs"><button onClick={() => navigate("/")}>Home</button>/<button onClick={() => navigate("/shop")}>Accessories</button>/<span>{product.name}</span></nav>
         <section className="detail-grid">
@@ -457,7 +487,7 @@ export function ProductPage({ product, cartCount, wishlist, addCart, toggleWish,
 export function CartPage(props: CartProps) {
   return (
     <div>
-      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
+      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} categoryRecords={props.categoryRecords} />
       <main className="cart-page">
         <SectionTitle title="Your Curated Collection" />
         {props.cartProducts.length ? (
@@ -796,7 +826,7 @@ export function CheckoutPage(props: CartProps) {
   };
   return (
     <div>
-      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} />
+      <StoreNav cartCount={props.cartCount} wishlist={props.wishlist} isCustomerAuthed={props.isCustomerAuthed} categories={props.categories} categoryRecords={props.categoryRecords} />
       <main className={isPaymentStep && !done ? "checkout-page has-payment-cta" : "checkout-page"}>
         <Progress step={step} />
         {done ? <Success total={confirmedTotal ?? total} customer={customer} onCreateCustomer={props.onCreateCustomer} hasAccount={Boolean(props.customerSession)} /> : (
@@ -990,7 +1020,7 @@ function LineInput({ name, label, wide, required, defaultValue, value, onChange,
 function PaymentStep({ review, address, cartProducts, coupon, setCoupon, applyCoupon, couponMessage, couponError, couponApplying }: { review: CheckoutPrice | null; address: AddressPayload | null; cartProducts: CartProps["cartProducts"]; coupon: string; setCoupon: (value: string) => void; applyCoupon: () => CheckoutPrice | null | void | Promise<CheckoutPrice | null | void>; couponMessage: string; couponError: string; couponApplying: boolean }) {
   const items = review?.items || cartProducts.map(({ item, product }) => {
     const unitPrice = discountedProductPrice(product);
-    return { slug: product.slug, name: product.name, image: product.image, variant: "", qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
+    return { slug: product.slug, name: product.name, image: product.image, variant: product.sub_category || "", qty: item.qty, unit_price: unitPrice, line_total: unitPrice * item.qty };
   });
   return <><h1>Review & Payment</h1><p>Confirm every detail before placing the order.</p><div className="review-list">{items.map((item) => <article key={item.slug}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong>{item.variant && <span>{item.variant}</span>}<small>Qty {item.qty} × {money(item.unit_price)}</small></div><b>{money(item.line_total)}</b></article>)}</div><div className="review-card"><label>Coupon Code<input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder={FIRST_ORDER_COUPON} /></label><button type="button" className="secondary-button" onClick={applyCoupon} disabled={couponApplying}>{couponApplying ? "Applying..." : "Apply"}</button>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{couponError && <p className="coupon-error">{couponError}</p>}</div>{address && <div className="review-card"><strong>Delivery Address</strong><p>{address.full_name}<br />{address.address}{address.address_line2 ? `, ${address.address_line2}` : ""}<br />{address.city}, {address.state} {address.pincode}<br />{address.country || "India"}</p><small>Estimated delivery: {review?.estimated_delivery_date || "3-5 business days"}</small></div>}<div className="review-totals"><div><span>Subtotal</span><b>{money(review?.subtotal || 0)}</b></div><div><span>Discount</span><b>{money(review?.discount || 0)}</b></div><div><span>Shipping</span><b>{review?.shipping_cost ? money(review.shipping_cost) : "FREE"}</b></div><strong><span>Final Payable</span><b>{money(review?.total || 0)}</b></strong></div><div className="choice-list"><div className="choice active" aria-label="Online payment with Razorpay"><span><CreditCard /> <strong>Razorpay (UPI, Card, Wallet)</strong><small>Secure online payment</small></span><ShieldCheck /></div></div></>;
 }
@@ -1029,10 +1059,10 @@ function Success({ total, customer, onCreateCustomer, hasAccount }: { total: num
   return <div className="success"><Check size={42} /><h1>Order Confirmed</h1><p>Your Gulabi Threads order for {money(total)} is confirmed. We sent the boutique a packing note and your tracking will appear soon.</p><button className="primary-button" onClick={() => navigate("/account")}>View Dashboard</button>{!hasAccount && <button className="secondary-button" onClick={() => setShowAccount(!showAccount)}>Create an account to track faster</button>}{showAccount && <div className="post-account"><p>Create an account to save your address and track future orders faster.</p><label>Name<input value={customer.full_name} readOnly /></label><label>Mobile<input value={customer.phone} readOnly /></label><label>Email<input value={customer.email} readOnly /></label><label>Password<input type="password" placeholder="Create password" value={password} onChange={(event) => setPassword(event.target.value)} /></label><label>Confirm Password<input type="password" placeholder="Confirm password" value={confirm} onChange={(event) => setConfirm(event.target.value)} /></label><button className="primary-button" onClick={createAccount}>Create Account</button>{message && <p className={message.startsWith("Account") ? "checkout-note" : "form-error"}>{message}</p>}</div>}</div>;
 }
 
-export function OrderConfirmationPage({ order, cartCount, wishlist, isCustomerAuthed, categories }: { order: OrderRow | null } & Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories">) {
+export function OrderConfirmationPage({ order, cartCount, wishlist, isCustomerAuthed, categories, categoryRecords }: { order: OrderRow | null } & Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories" | "categoryRecords">) {
   return (
     <div>
-      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} />
+      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} categoryRecords={categoryRecords} />
       <main className="checkout-page">
         {order ? (
           <section className="success">
@@ -1060,7 +1090,7 @@ export function OrderConfirmationPage({ order, cartCount, wishlist, isCustomerAu
   );
 }
 
-export function TrackOrderPage({ cartCount, wishlist, isCustomerAuthed, categories }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories">) {
+export function TrackOrderPage({ cartCount, wishlist, isCustomerAuthed, categories, categoryRecords }: Pick<StoreProps, "cartCount" | "wishlist" | "isCustomerAuthed" | "categories" | "categoryRecords">) {
   const params = new URLSearchParams(window.location.search);
   const [orderId, setOrderId] = useState(params.get("order") || "");
   const [identifier, setIdentifier] = useState("");
@@ -1108,7 +1138,7 @@ export function TrackOrderPage({ cartCount, wishlist, isCustomerAuthed, categori
   const lines = order?.line_items?.length ? order.line_items : [];
   return (
     <div>
-      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} />
+      <StoreNav cartCount={cartCount} wishlist={wishlist} isCustomerAuthed={isCustomerAuthed} categories={categories} categoryRecords={categoryRecords} />
       <main className="checkout-page track-page">
         <section className="checkout-panel track-panel">
           <p className="eyebrow">Order Tracking</p>

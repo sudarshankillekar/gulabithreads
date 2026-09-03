@@ -77,6 +77,7 @@ def normalize_product_document(document: dict) -> dict:
         discount_price = float(product.get("discount_price", 0) or 0)
     except (TypeError, ValueError):
         discount_price = 0
+    product["sub_category"] = str(product.get("sub_category") or "").strip() or None
     if not discount_price:
         try:
             discount_percent = float(product.get("discount_percent", 0) or 0)
@@ -209,6 +210,95 @@ async def ensure_active_category(category_name: str) -> None:
     category = await get_db().categories.find_one({"name": category_name, "active": True, "archived": False})
     if category is None:
         raise HTTPException(status_code=422, detail=f"Category '{category_name}' is not active")
+
+
+def normalize_category_parent(parent_slug: str | None) -> str | None:
+    value = str(parent_slug or "").strip()
+    return value or None
+
+
+def normalize_category_payload(payload: CategoryCreate | CategoryUpdate) -> dict:
+    category = payload.model_dump()
+    category["name"] = str(category.get("name") or "").strip()
+    category["slug"] = str(category.get("slug") or "").strip()
+    category["description"] = str(category.get("description") or "").strip()
+    category["image"] = str(category.get("image") or "").strip()
+    category["parent_slug"] = normalize_category_parent(category.get("parent_slug"))
+    category["seo_title"] = str(category.get("seo_title") or "").strip()
+    category["seo_description"] = str(category.get("seo_description") or "").strip()
+    return category
+
+
+def categories_by_parent(categories: list[dict]) -> dict[str | None, list[dict]]:
+    by_parent: dict[str | None, list[dict]] = {}
+    for category in categories:
+        parent_slug = normalize_category_parent(category.get("parent_slug"))
+        by_parent.setdefault(parent_slug, []).append(category)
+    return by_parent
+
+
+def descendant_category_names(category: dict, categories: list[dict]) -> list[str]:
+    by_parent = categories_by_parent(categories)
+    names: list[str] = []
+    seen: set[str] = set()
+    stack = [category]
+    while stack:
+        current = stack.pop()
+        slug = str(current.get("slug") or "")
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        name = str(current.get("name") or "").strip()
+        if name:
+            names.append(name)
+        stack.extend(by_parent.get(slug, []))
+    return names
+
+
+async def category_documents(db, include_archived: bool = False, active_only: bool = False) -> list[dict]:
+    query: dict = {}
+    if not include_archived:
+        query["archived"] = False
+    if active_only:
+        query["active"] = True
+        query["archived"] = False
+    cursor = db.categories.find(query).sort([("display_order", 1), ("name", 1)])
+    categories: list[dict] = []
+    async for document in cursor:
+        categories.append(strip_id(document))
+    return categories
+
+
+async def product_count_for_category(db, category: dict, categories: list[dict]) -> int:
+    names = descendant_category_names(category, categories)
+    if not names:
+        return 0
+    return await db.products.count_documents({"category": {"$in": names}})
+
+
+async def ensure_valid_category_parent(db, parent_slug: str | None, own_slugs: set[str] | None = None) -> None:
+    own_slugs = own_slugs or set()
+    normalized_parent = normalize_category_parent(parent_slug)
+    if not normalized_parent:
+        return
+    if normalized_parent in own_slugs:
+        raise HTTPException(status_code=400, detail="A category cannot be its own parent")
+    parent = await db.categories.find_one({"slug": normalized_parent, "archived": False})
+    if parent is None:
+        raise HTTPException(status_code=400, detail="Parent category not found")
+    seen: set[str] = set()
+    current = parent
+    while current:
+        current_slug = str(current.get("slug") or "")
+        if current_slug in own_slugs:
+            raise HTTPException(status_code=400, detail="Category hierarchy cannot contain a cycle")
+        if not current_slug or current_slug in seen:
+            break
+        seen.add(current_slug)
+        next_parent = normalize_category_parent(current.get("parent_slug"))
+        if not next_parent:
+            break
+        current = await db.categories.find_one({"slug": next_parent})
 
 
 def customer_key(name: str, phone: str | None = None, email: str | None = None) -> str:
@@ -653,7 +743,7 @@ async def calculate_checkout_price(items: list[CartItem], shipping_cost: float =
                 slug=item.slug,
                 name=product["name"],
                 image=product["image"],
-                variant="",
+                variant=str(product.get("sub_category") or ""),
                 qty=item.qty,
                 unit_price=unit_price,
                 line_total=line_total,
@@ -954,13 +1044,9 @@ async def list_categories(include_archived: bool = False, authorization: str | N
     if include_archived:
         await require_admin(authorization)
     db = get_db()
-    query = {} if include_archived else {"archived": False}
-    cursor = db.categories.find(query).sort([("display_order", 1), ("name", 1)])
-    categories: list[dict] = []
-    async for document in cursor:
-        document = strip_id(document)
-        document["product_count"] = await db.products.count_documents({"category": document["name"]})
-        categories.append(document)
+    categories = await category_documents(db, include_archived=include_archived)
+    for category in categories:
+        category["product_count"] = await product_count_for_category(db, category, categories)
     return categories
 
 
@@ -968,11 +1054,12 @@ async def list_categories(include_archived: bool = False, authorization: str | N
 async def create_category(payload: CategoryCreate, authorization: str | None = Header(default=None)) -> dict:
     await require_admin(authorization)
     db = get_db()
-    if await db.categories.find_one({"slug": payload.slug}) is not None:
+    category = normalize_category_payload(payload)
+    await ensure_valid_category_parent(db, category["parent_slug"])
+    if await db.categories.find_one({"slug": category["slug"]}) is not None:
         raise HTTPException(status_code=409, detail="A category with this slug already exists")
-    if await db.categories.find_one({"name": payload.name}) is not None:
+    if await db.categories.find_one({"name": category["name"]}) is not None:
         raise HTTPException(status_code=409, detail="A category with this name already exists")
-    category = payload.model_dump()
     await db.categories.insert_one(category)
     category["product_count"] = 0
     return category
@@ -985,16 +1072,20 @@ async def update_category(slug: str, payload: CategoryUpdate, authorization: str
     existing = await db.categories.find_one({"slug": slug})
     if existing is None:
         raise HTTPException(status_code=404, detail="Category not found")
-    if payload.slug != slug and await db.categories.find_one({"slug": payload.slug}) is not None:
+    category = normalize_category_payload(payload)
+    await ensure_valid_category_parent(db, category["parent_slug"], {slug, category["slug"]})
+    if category["slug"] != slug and await db.categories.find_one({"slug": category["slug"]}) is not None:
         raise HTTPException(status_code=409, detail="A category with this slug already exists")
-    duplicate_name = await db.categories.find_one({"name": payload.name, "slug": {"$ne": slug}})
+    duplicate_name = await db.categories.find_one({"name": category["name"], "_id": {"$ne": existing["_id"]}})
     if duplicate_name is not None:
         raise HTTPException(status_code=409, detail="A category with this name already exists")
-    category = payload.model_dump()
-    await db.categories.replace_one({"slug": slug}, category)
-    if existing["name"] != payload.name:
-        await db.products.update_many({"category": existing["name"]}, {"$set": {"category": payload.name}})
-    category["product_count"] = await db.products.count_documents({"category": payload.name})
+    await db.categories.update_one({"_id": existing["_id"]}, {"$set": category})
+    if existing["name"] != category["name"]:
+        await db.products.update_many({"category": existing["name"]}, {"$set": {"category": category["name"]}})
+    if existing["slug"] != category["slug"]:
+        await db.categories.update_many({"parent_slug": existing["slug"]}, {"$set": {"parent_slug": category["slug"]}})
+    categories = await category_documents(db)
+    category["product_count"] = await product_count_for_category(db, category, categories)
     return category
 
 
@@ -1005,15 +1096,19 @@ async def archive_category(slug: str, authorization: str | None = Header(default
     category = await db.categories.find_one({"slug": slug})
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
-    product_count = await db.products.count_documents({"category": category["name"]})
+    child_count = await db.categories.count_documents({"parent_slug": slug, "archived": False})
+    if child_count > 0:
+        raise HTTPException(status_code=409, detail="Archive child categories before this parent category")
+    categories = await category_documents(db)
+    category_out = strip_id(category.copy())
+    product_count = await product_count_for_category(db, category_out, categories)
     if product_count > 0:
         raise HTTPException(status_code=409, detail="Reassign products before archiving this category")
     await db.categories.update_one({"slug": slug}, {"$set": {"active": False, "archived": True}})
-    category["active"] = False
-    category["archived"] = True
-    category = strip_id(category)
-    category["product_count"] = product_count
-    return category
+    category_out["active"] = False
+    category_out["archived"] = True
+    category_out["product_count"] = product_count
+    return category_out
 
 
 @app.patch("/api/categories/{slug}/status", response_model=CategoryOut)
@@ -1025,9 +1120,10 @@ async def update_category_status(slug: str, active: bool, authorization: str | N
         raise HTTPException(status_code=404, detail="Category not found")
     await db.categories.update_one({"slug": slug}, {"$set": {"active": active}})
     category["active"] = active
-    category = strip_id(category)
-    category["product_count"] = await db.products.count_documents({"category": category["name"]})
-    return category
+    category_out = strip_id(category)
+    categories = await category_documents(db)
+    category_out["product_count"] = await product_count_for_category(db, category_out, categories)
+    return category_out
 
 
 @app.get("/api/products", response_model=list[Product])
@@ -1037,14 +1133,20 @@ async def list_products(
     max_price: float | None = Query(default=None, ge=0),
     in_stock: bool = False,
 ) -> list[dict]:
+    db = get_db()
     query: dict = {}
     if category:
-        query["category"] = category
+        categories = await category_documents(db, active_only=True)
+        category_doc = next((item for item in categories if item.get("name") == category), None)
+        if category_doc:
+            query["category"] = {"$in": descendant_category_names(category_doc, categories)}
+        else:
+            query["category"] = category
     if q:
         query["name"] = {"$regex": q, "$options": "i"}
     if in_stock:
         query["stock"] = {"$gt": 0}
-    cursor = get_db().products.find(query).sort("name", 1)
+    cursor = db.products.find(query).sort("name", 1)
     products = []
     async for document in cursor:
         product = normalize_product_document(document)

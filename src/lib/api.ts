@@ -22,24 +22,65 @@ function authTokenFor(path: string) {
   return adminToken || customerToken;
 }
 
-export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const isFormData = init?.body instanceof FormData;
-  const token = authTokenFor(path);
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const response = await fetch(`${API_BASE}${normalizedPath}`, {
-    headers: { ...(isFormData ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers },
-    ...init,
-  });
-  if (!response.ok) {
-    const message = await response.text();
-    let parsed: { detail?: string; message?: string } | null = null;
-    try {
-      parsed = JSON.parse(message);
-    } catch {
-      parsed = null;
-    }
-    throw new Error(parsed?.detail || parsed?.message || message || `Request failed: ${response.status}`);
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
   }
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+}
+
+type RequestOptions = { retries?: number; timeoutMs?: number };
+
+function waitForRetry(ms: number, signal?: AbortSignal | null) {
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      reject(new DOMException("Request cancelled", "AbortError"));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    if (signal?.aborted) onAbort();
+  });
+}
+
+export async function apiRequest<T>(path: string, init?: RequestInit, options: RequestOptions = {}): Promise<T> {
+  const isFormData = init?.body instanceof FormData;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const token = authTokenFor(normalizedPath);
+  const headers = new Headers(init?.headers);
+  // Bodyless GETs do not need a JSON content type (or its CORS preflight).
+  if (init?.body && !isFormData && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
+  // Only explicitly opted-in reads may retry; never replay a payment or mutation.
+  const retries = (init?.method || "GET").toUpperCase() === "GET" ? options.retries || 0 : 0;
+  for (let attempt = 0; ; attempt++) {
+    if (init?.signal?.aborted) throw new DOMException("Request cancelled", "AbortError");
+    const controller = new AbortController();
+    const onAbort = () => controller.abort();
+    init?.signal?.addEventListener("abort", onAbort, { once: true });
+    const timer = options.timeoutMs ? setTimeout(() => controller.abort(), options.timeoutMs) : undefined;
+    try {
+      const response = await fetch(`${API_BASE}${normalizedPath}`, { ...init, headers, signal: controller.signal });
+      if (!response.ok) {
+        const message = await response.text();
+        let parsed: { detail?: string; message?: string } | null = null;
+        try { parsed = JSON.parse(message); } catch { /* Keep non-JSON server errors. */ }
+        throw new ApiError(parsed?.detail || parsed?.message || message || `Request failed: ${response.status}`, response.status);
+      }
+      if (response.status === 204) return undefined as T;
+      return await response.json() as T;
+    } catch (error) {
+      const transient = error instanceof ApiError
+        ? [408, 429, 500, 502, 503, 504].includes(error.status)
+        : error instanceof TypeError || (error instanceof DOMException && error.name === "AbortError");
+      if (init?.signal?.aborted || !transient || attempt >= retries) throw error;
+    } finally {
+      clearTimeout(timer);
+      init?.signal?.removeEventListener("abort", onAbort);
+    }
+    await waitForRetry(Math.min(1000 * 2 ** attempt, 4000), init?.signal);
+  }
 }

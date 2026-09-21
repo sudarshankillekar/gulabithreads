@@ -1,3 +1,4 @@
+import { CatalogStatus } from "../components/CatalogStatus";
 import { ChangeEvent, FormEvent, TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -320,6 +321,7 @@ export function HomePage(props: StoreProps) {
       </section>
       <main className="page home-page">
         <SectionTitle eyebrow="Curated Selection" title="New Arrivals" action="View All Products" />
+        <CatalogStatus {...props} />
         <div className="product-grid home-products">{props.products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div>
         <HomeBenefits />
       </main>
@@ -370,8 +372,9 @@ export function ShopPage(props: StoreProps) {
       <main className="shop-layout">
         {filters}
         <section className="shop-results">
-          <div className="shop-toolbar"><p>{filtered.length} pieces</p><button onClick={() => setMobileFilters(true)}><Filter size={18} /> Filters</button></div>
-          {filtered.length ? <div className="product-grid">{filtered.map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div> : <Empty title="No pieces match" text="Adjust the filters to continue browsing the collection." />}
+          <div className="shop-toolbar"><p>{props.catalogLoading ? "Loading collection…" : props.catalogError ? "Collection unavailable" : `${filtered.length} pieces`}</p><button onClick={() => setMobileFilters(true)}><Filter size={18} /> Filters</button></div>
+          <CatalogStatus {...props} />
+          {props.catalogLoading || props.catalogError ? null : filtered.length ? <div className="product-grid">{filtered.map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div> : <Empty title="No pieces match" text="Adjust the filters to continue browsing the collection." />}
         </section>
       </main>
       {mobileFilters && <div className="drawer"><button className="close" onClick={() => setMobileFilters(false)}><X /></button>{filters}</div>}

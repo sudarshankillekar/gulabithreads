@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { useCatalog } from "./hooks/useCatalog";
+import { CatalogStatus } from "./components/CatalogStatus";
 import { apiRequest } from "./lib/api";
 import { useLocalState } from "./hooks/useLocalState";
 import { usePath } from "./hooks/usePath";
-import { categories as fallbackCategories, products } from "./data/catalog";
+import { categories as fallbackCategories } from "./data/catalog";
 import { navigate } from "./lib/navigation";
 import { discountedProductPrice } from "./lib/pricing";
 import { AccountPage, DashboardPage } from "./pages/DashboardPages";
@@ -24,8 +26,7 @@ function customerNextPath(fallback = "/") {
 
 function App() {
   const path = usePath();
-  const [catalog, setCatalog] = useState<Product[]>([]);
-  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const { catalog, setCatalog, catalogLoaded, catalogLoading, catalogError, retryCatalog } = useCatalog();
   const [orderRows, setOrderRows] = useState<OrderRow[]>([]);
   const [categoryRows, setCategoryRows] = useState<CategoryRecord[]>([]);
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
@@ -65,8 +66,7 @@ function App() {
   useEffect(() => {
     localStorage.removeItem("gt-customer-accounts");
     setCustomerAccounts([]);
-    apiRequest<Product[]>("/products").then(setCatalog).catch(() => setCatalog([])).finally(() => setCatalogLoaded(true));
-    apiRequest<CategoryRecord[]>("/categories").then(setCategoryRows).catch(() => setCategoryRows([]));
+    apiRequest<CategoryRecord[]>("/categories", undefined, { retries: 3, timeoutMs: 20000 }).then(setCategoryRows).catch(() => setCategoryRows([]));
     apiRequest<{ configured: boolean }>("/admin/auth/status").then((status) => setAdminConfigured(status.configured)).catch(() => setAdminConfigured(true));
   }, []);
 
@@ -89,7 +89,7 @@ function App() {
     if (!adminSession?.token) return;
     apiRequest<OrderRow[]>("/admin/orders").then(setOrderRows).catch(() => setOrderRows([]));
     apiRequest<CustomerRecord[]>("/customers").then(setCustomers).catch(() => setCustomers([]));
-    apiRequest<CategoryRecord[]>("/categories").then(setCategoryRows).catch(() => undefined);
+    apiRequest<CategoryRecord[]>("/categories", undefined, { retries: 3, timeoutMs: 20000 }).then(setCategoryRows).catch(() => undefined);
   }, [adminSession, setAdminSession]);
 
   useEffect(() => {
@@ -269,7 +269,7 @@ function App() {
 
   const activeCategoryRows = categoryRows.filter((category) => category.active && !category.archived);
   const categoryNames = activeCategoryRows.length ? activeCategoryRows.map((category) => category.name) : [...fallbackCategories];
-  const storeProps = { cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, categoryRecords: activeCategoryRows, isCustomerAuthed };
+  const storeProps = { catalogLoading, catalogError, retryCatalog, cartCount, wishlist, addCart, toggleWish, onOrderPlaced: handleOrderPlaced, products: catalog, orders: orderRows, categories: categoryNames, categoryRecords: activeCategoryRows, isCustomerAuthed };
   const authProps = {
     onLogin: loginCustomer,
     customerAccounts,
@@ -324,7 +324,8 @@ function App() {
 
   return (
     <>
-      {page}
+      {!catalogLoaded && (routePath.startsWith("/product/") || routePath === "/cart" || routePath === "/checkout") ? <main className="container"><CatalogStatus {...storeProps} /></main> : page}
+      {!catalogLoaded && (routePath.startsWith("/admin") || routePath.startsWith("/seller") || routePath.startsWith("/account")) && <CatalogStatus {...storeProps} />}
       {toast && <div className="toast">{toast}</div>}
     </>
   );

@@ -772,3 +772,7 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
   .shipping-promo { opacity: 1; transform: none; animation: none; }
   .shipping-promo.shipping-promo-two { display: none; }
 }
+
+.catalog-status { padding: 28px 20px; margin: 20px 0; text-align: center; background: #faf4f7; border-radius: 12px; }
+.catalog-status p { margin: 0 0 12px; }
+.catalog-status p:last-child { margin-bottom: 0; }

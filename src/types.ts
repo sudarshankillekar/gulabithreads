@@ -110,6 +110,9 @@ export type CheckoutPrice = {
 };
 
 export type StoreProps = {
+  catalogLoading?: boolean;
+  catalogError?: string;
+  retryCatalog?: () => void;
   products: Product[];
   orders: OrderRow[];
   categories: string[];

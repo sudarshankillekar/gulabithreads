@@ -372,9 +372,9 @@ export function ShopPage(props: StoreProps) {
       <main className="shop-layout">
         {filters}
         <section className="shop-results">
-          <div className="shop-toolbar"><p>{props.catalogLoading ? "Loading collection…" : props.catalogError ? "Collection unavailable" : `${filtered.length} pieces`}</p><button onClick={() => setMobileFilters(true)}><Filter size={18} /> Filters</button></div>
+          <div className="shop-toolbar"><p>{props.catalogLoading && !props.products.length ? "Loading collection…" : props.catalogError && !props.products.length ? "Collection unavailable" : `${filtered.length} pieces`}</p><button onClick={() => setMobileFilters(true)}><Filter size={18} /> Filters</button></div>
           <CatalogStatus {...props} />
-          {props.catalogLoading || props.catalogError ? null : filtered.length ? <div className="product-grid">{filtered.map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div> : <Empty title="No pieces match" text="Adjust the filters to continue browsing the collection." />}
+          {(props.catalogLoading || props.catalogError) && !props.products.length ? null : filtered.length ? <div className="product-grid">{filtered.map((product) => <ProductCard key={product.slug} product={product} {...props} />)}</div> : <Empty title="No pieces match" text="Adjust the filters to continue browsing the collection." />}
         </section>
       </main>
       {mobileFilters && <div className="drawer"><button className="close" onClick={() => setMobileFilters(false)}><X /></button>{filters}</div>}

@@ -776,3 +776,5 @@ td img { width: 44px; height: 56px; object-fit: cover; display: inline-block; ve
 .catalog-status { padding: 28px 20px; margin: 20px 0; text-align: center; background: #faf4f7; border-radius: 12px; }
 .catalog-status p { margin: 0 0 12px; }
 .catalog-status p:last-child { margin-bottom: 0; }
+
+.catalog-refresh { margin: 8px 0 16px; font-size: 12px; color: #756773; }

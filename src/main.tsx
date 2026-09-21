@@ -324,7 +324,7 @@ function App() {
 
   return (
     <>
-      {!catalogLoaded && (routePath.startsWith("/product/") || routePath === "/cart" || routePath === "/checkout") ? <main className="container"><CatalogStatus {...storeProps} /></main> : page}
+      {!catalogLoaded && ((routePath.startsWith("/product/") && !catalog.some((product) => product.slug === productSlug)) || routePath === "/cart" || routePath === "/checkout") ? <main className="container"><CatalogStatus {...storeProps} products={[]} /></main> : page}
       {!catalogLoaded && (routePath.startsWith("/admin") || routePath.startsWith("/seller") || routePath.startsWith("/account")) && <CatalogStatus {...storeProps} />}
       {toast && <div className="toast">{toast}</div>}
     </>

@@ -8,5 +8,6 @@
       "source": "/:path*",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "buildCommand": "npm run vercel-build"
 }

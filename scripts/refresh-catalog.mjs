@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 // A public, real catalog snapshot lets first-time visitors browse while the API wakes.
 const base = (process.env.CATALOG_SNAPSHOT_API_URL || process.env.VITE_API_BASE_URL || 'https://www.gulabitreads.com/api').replace(/\/+$/, '');
@@ -7,5 +7,10 @@ const response = await fetch(`${base.endsWith('/api') ? base : `${base}/api`}/pr
 if (!response.ok) throw new Error(`Catalog snapshot failed: HTTP ${response.status}`);
 const products = await response.json();
 if (!Array.isArray(products) || !products.every(p => typeof p.slug === 'string' && typeof p.name === 'string' && typeof p.price === 'number' && typeof p.stock === 'number' && typeof p.image === 'string')) throw new Error('Invalid product catalog');
-await writeFile(new URL('../src/data/catalog-snapshot.json', import.meta.url), `${JSON.stringify({ generatedAt: new Date().toISOString(), products })}\n`);
+let previous = {};
+try { previous = JSON.parse(await readFile(new URL('../src/data/catalog-snapshot.json', import.meta.url), 'utf8')); } catch { /* First build has no prior snapshot. */ }
+const baselineSlugs = Array.isArray(previous.baselineSlugs)
+  ? previous.baselineSlugs
+  : Array.isArray(previous.products) ? previous.products.map(product => product.slug) : [];
+await writeFile(new URL('../src/data/catalog-snapshot.json', import.meta.url), `${JSON.stringify({ generatedAt: new Date().toISOString(), baselineSlugs, products })}\n`);
 console.log(`Refreshed public catalog snapshot: ${products.length} products`);

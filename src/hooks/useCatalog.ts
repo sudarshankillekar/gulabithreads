@@ -6,7 +6,7 @@ import type { Product } from "../types";
 
 const cacheScope = String(import.meta.env.VITE_API_BASE_URL || "/api");
 const initialProducts = import.meta.env.PROD && isCatalog(snapshot.products) ? snapshot.products : [];
-const snapshotSlugs = new Set(initialProducts.map((product) => product.slug));
+const snapshotSlugs = new Set<string>(snapshot.baselineSlugs || initialProducts.map((product) => product.slug));
 
 function prioritizeNewProducts(products: Product[]) {
   // Until the backend's creation-date migration is deployed, products that

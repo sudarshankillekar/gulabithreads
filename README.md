@@ -37,11 +37,10 @@ Useful API routes:
 ## Fast catalog loading
 
 Production builds include a snapshot of the public product catalog so a first visit
-can render products before the backend responds. Vercel runs `npm run vercel-build`,
-which refreshes that snapshot before building; the deployment fails if a valid
-catalog cannot be fetched. Set `CATALOG_SNAPSHOT_API_URL` to an absolute API base URL
-when building against a different backend. `npm run build` uses the existing snapshot
-for offline development; `npm run refresh-catalog` updates it explicitly.
+can render products before the backend responds. `npm run refresh-catalog` updates
+that snapshot explicitly; the Vercel build uses the committed snapshot and does not
+depend on the backend being awake during deployment. Set `CATALOG_SNAPSHOT_API_URL`
+to an absolute API base URL when refreshing against a different backend.
 
 A newer browser cache is reused for up to 24 hours. Snapshot/cached products are
 for browsing: live data replaces them in the background, and cart/checkout and saved

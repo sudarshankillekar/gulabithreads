@@ -16,6 +16,7 @@ export type CategoryRecord = {
 
 export type Product = {
   slug: string;
+  created_at?: string;
   name: string;
   price: number;
   discount_price?: number;

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -8,6 +9,7 @@ OrderStatus = Literal["Processing", "In Transit", "Shipped", "Delivered", "Pendi
 
 class Product(BaseModel):
     slug: str
+    created_at: datetime | None = None
     name: str
     price: float = Field(ge=0)
     discount_price: float = Field(default=0, ge=0)

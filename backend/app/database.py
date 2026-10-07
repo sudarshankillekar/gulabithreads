@@ -25,6 +25,7 @@ async def connect() -> None:
     await client.admin.command("ping")
     db = get_db()
     await db.products.create_index("slug", unique=True)
+    await db.products.create_index([("created_at", -1), ("name", 1)])
     await db.orders.create_index("id", unique=True)
     await db.orders.create_index("customer")
     await db.orders.create_index("customer_phone")

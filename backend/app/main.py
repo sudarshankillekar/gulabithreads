@@ -1145,7 +1145,9 @@ async def list_products(
         query["name"] = {"$regex": q, "$options": "i"}
     if in_stock:
         query["stock"] = {"$gt": 0}
-    cursor = db.products.find(query).sort("name", 1)
+    # New arrivals should reflect when products were added. Older seeded
+    # records without a timestamp fall back to a stable name order.
+    cursor = db.products.find(query).sort([("created_at", -1), ("name", 1)])
     products = []
     async for document in cursor:
         product = normalize_product_document(document)
@@ -1172,6 +1174,7 @@ async def create_product(payload: Product, authorization: str | None = Header(de
     if existing is not None:
         raise HTTPException(status_code=409, detail="A product with this slug already exists")
     product = normalize_product_document(payload.model_dump())
+    product["created_at"] = datetime.utcnow()
     await db.products.insert_one(product)
     return product
 
@@ -1187,6 +1190,7 @@ async def update_product(slug: str, payload: Product, authorization: str | None 
     if payload.slug != slug and await db.products.find_one({"slug": payload.slug}) is not None:
         raise HTTPException(status_code=409, detail="A product with this slug already exists")
     product = normalize_product_document(payload.model_dump())
+    product["created_at"] = existing.get("created_at") or datetime.utcnow()
     await db.products.replace_one({"slug": slug}, product)
     return product
 

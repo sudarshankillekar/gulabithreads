@@ -6,9 +6,20 @@ import type { Product } from "../types";
 
 const cacheScope = String(import.meta.env.VITE_API_BASE_URL || "/api");
 const initialProducts = import.meta.env.PROD && isCatalog(snapshot.products) ? snapshot.products : [];
+const snapshotSlugs = new Set(initialProducts.map((product) => product.slug));
+
+function prioritizeNewProducts(products: Product[]) {
+  // Until the backend's creation-date migration is deployed, products that
+  // are absent from the build snapshot are the newest known additions.
+  return [...products].sort((left, right) => {
+    const leftIsNew = Number(!snapshotSlugs.has(left.slug));
+    const rightIsNew = Number(!snapshotSlugs.has(right.slug));
+    return rightIsNew - leftIsNew;
+  });
+}
 
 export function useCatalog() {
-  const [catalog, setCatalog] = useState<Product[]>(() => readCatalogCache(cacheScope, initialProducts, import.meta.env.PROD ? Date.parse(snapshot.generatedAt) : 0));
+  const [catalog, setCatalog] = useState<Product[]>(() => prioritizeNewProducts(readCatalogCache(cacheScope, initialProducts, import.meta.env.PROD ? Date.parse(snapshot.generatedAt) : 0)));
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
@@ -22,7 +33,7 @@ export function useCatalog() {
       .then((products) => {
         if (controller.signal.aborted) return;
         if (!isCatalog(products)) throw new Error("Invalid product catalog");
-        setCatalog(products);
+        setCatalog(prioritizeNewProducts(products));
         // Only a successful response may reconcile saved bag and wishlist items.
         setCatalogLoaded(true);
       })

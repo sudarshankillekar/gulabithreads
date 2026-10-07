@@ -166,3 +166,11 @@ async def seed_database(db) -> None:
             {"$set": {"seeded": True}},
             upsert=True,
         )
+
+    # Products created before created_at was introduced still have their
+    # insertion time encoded in MongoDB's ObjectId. Preserve that ordering so
+    # they appear correctly in the storefront's New Arrivals section.
+    await db.products.update_many(
+        {"created_at": {"$exists": False}},
+        [{"$set": {"created_at": {"$toDate": "$_id"}}}],
+    )
